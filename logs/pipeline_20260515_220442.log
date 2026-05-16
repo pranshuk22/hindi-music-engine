@@ -1,0 +1,26 @@
+  0%|          | 0/50 [00:00<?, ?it/s]  0%|          | 0/50 [01:38<?, ?it/s]
+Traceback (most recent call last):
+  File "/Users/pranshukumar/Desktop/side-projects/hindi-music-engine/scripts/run_pipeline.py", line 49, in <module>
+    run_batch("data/songs.csv", start_from=start)
+  File "/Users/pranshukumar/Desktop/side-projects/hindi-music-engine/scripts/run_pipeline.py", line 30, in run_batch
+    process_song(
+  File "/Users/pranshukumar/Desktop/side-projects/hindi-music-engine/pipeline/processor.py", line 41, in process_song
+    stems = separate_stems(clip_path, TEMP_DIR)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pranshukumar/Desktop/side-projects/hindi-music-engine/pipeline/stemmer.py", line 22, in separate_stems
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 1201, in communicate
+    self.wait()
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 2053, in _wait
+    (pid, sts) = self._try_wait(0)
+                 ^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 2011, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

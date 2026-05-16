@@ -1,0 +1,8 @@
+.env
+context.txt
+condepack.py
+data/embeddings/*
+data/embeddings_raw/*
+data/features/*
+data/metadata.db
+data/nlp/*venv/

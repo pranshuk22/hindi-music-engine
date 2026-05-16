@@ -1,0 +1,20 @@
+yt-dlp
+pydub
+librosa
+numpy
+scipy
+scikit-learn
+faiss-cpu
+transformers
+torch
+torchaudio
+umap-learn
+matplotlib
+pandas
+tqdm
+requests
+msclap        # Microsoft's CLAP implementation — easiest to use
+torchcodec
+demucs
+pydub
+essentia
