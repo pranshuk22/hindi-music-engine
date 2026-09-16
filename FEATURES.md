@@ -21,8 +21,8 @@ Final stored/indexed dimensions after PCA: **256d**
 
 | Feature | Dims | Model / Source | Description |
 |---|:---:|---|---|
-| `clap_embedding` | 512 | `msclap` (LAION CLAP 2023) | Global acoustic context: instrumentation, energy, mood, production style. Strongest single signal. |
-| `nlp_lyrics_vector` | 384 | `paraphrase-multilingual-mpnet-base-v2` (SentenceTransformers) | Semantic meaning of Hindi/Urdu lyrics. Prevents acoustic matches that clash in meaning (e.g., a fast party song matching a grief song). |
+| `clap_embedding` | 1024 (corrected 2026-09-15; was documented as 512, never verified against a real embedding) | `msclap` (LAION CLAP 2023) | Global acoustic context: instrumentation, energy, mood, production style. Strongest single signal. |
+| `nlp_lyrics_vector` | 768 (corrected 2026-09-15; was documented as 384) | `paraphrase-multilingual-mpnet-base-v2` (SentenceTransformers) | Semantic meaning of Hindi/Urdu lyrics. Prevents acoustic matches that clash in meaning (e.g., a fast party song matching a grief song). |
 
 **Lyrics handling rules:**
 
@@ -110,12 +110,23 @@ These weights are starting defaults. Re-evaluate after each UMAP visualisation p
 
 ### The Problem
 
-The raw fused vector is ~991 dimensions:
+**Correction (2026-09-15):** this table's `clap_embedding` (512) and
+`nlp_lyrics_vector` (384) dims were never checked against a real model
+output and are both wrong — msclap's CLAP(version="2023") is actually
+1024d, and `paraphrase-multilingual-mpnet-base-v2` is actually 768d (see
+`pipeline/embedder.py`'s `CLAP_DIM` constant and module docstring for the
+current, verified numbers, including `tonnetz_mean` which this table
+predates). The rest of this table is kept for historical context on the
+original design intent, not as an accurate current spec.
+
+The raw fused vector was originally spec'd at ~991 dimensions, based on the
+wrong dims above; actual raw dimension is ~1893 (1024 CLAP + 768 NLP + 22
+vocal + 73 melodic incl. tonnetz + 6 rhythmic):
 
 | Group | Dims |
 |---|---|
-| clap\_embedding | 512 |
-| nlp\_lyrics\_vector | 384 |
+| clap\_embedding | 512 (WRONG — actually 1024, see correction above) |
+| nlp\_lyrics\_vector | 384 (WRONG — actually 768, see correction above) |
 | vocal\_mfcc | 20 |
 | vocal\_energy\_ratio | 1 |
 | murki\_index | 1 |

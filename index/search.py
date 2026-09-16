@@ -26,6 +26,7 @@ from pipeline.embedder import (
     rocchio_adjust,
     playlist_centroid,
 )
+from index import rerank
 
 log = logging.getLogger(__name__)
 
@@ -69,17 +70,34 @@ def _run_search(
     category:       str  = None,
     tempo_bucket:   int  = None,
     exclude_artist: str  = None,
+    anchor_ctx:     dict = None,
+    rerank_weights: dict = None,
 ) -> list[dict]:
     """
-    Run a FAISS inner-product search and return formatted result dicts.
-    Filters are applied during retrieval to guarantee exactly top_k results.
+    Run a FAISS inner-product search, apply the Stage 2 rerank (index/rerank.py),
+    and return formatted result dicts. Filters are applied during retrieval.
+
+    anchor_ctx: built via rerank.build_context(anchor_row) — everything the
+    Stage 2 scorers need about the query song. None (e.g. playlist-centroid
+    or manual-vector queries with no single anchor song) means no rerank
+    signal can be computed, so effectively no reranking happens regardless
+    of rerank_weights.
+    rerank_weights: defaults to rerank.DEFAULT_WEIGHTS (currently only
+    `composer` is active). Pass an override dict to ablate/tune individual
+    signals — see scripts/evaluate_golden.py --rerank-weight.
     """
     import json
     index, song_ids = load_index()
     exclude_set = set(exclude_ids or [])
 
-    # Over-fetch heavily if filters are applied, since FAISS is blind to metadata
-    has_filters = any([category, tempo_bucket is not None, exclude_artist])
+    if rerank_weights is None:
+        rerank_weights = rerank.DEFAULT_WEIGHTS
+    rerank_active = anchor_ctx is not None and rerank.any_active(rerank_weights)
+
+    # Over-fetch heavily if filters OR reranking are active, since FAISS is
+    # blind to metadata/rerank signals and a rerank can pull a lower-cosine
+    # result above ones we'd otherwise have already cut off.
+    has_filters = any([category, tempo_bucket is not None, exclude_artist, rerank_active])
     fetch_k = (top_k * 5) if has_filters else (top_k + len(exclude_set) + 5)
     fetch_k = min(fetch_k, len(song_ids)) # Don't fetch more than we have
 
@@ -88,15 +106,15 @@ def _run_search(
         fetch_k,
     )
 
-    results = []
+    candidates = []
     for dist, idx in zip(distances[0], indices[0]):
         if idx == -1 or idx >= len(song_ids):
             continue
-            
+
         sid = song_ids[idx]
         if sid in exclude_set:
             continue
-            
+
         row = get_song_by_id(sid)
         if row is None:
             continue
@@ -119,20 +137,33 @@ def _run_search(
             else:
                 continue # Skip if we can't verify the tempo
 
-        # If it passes all filters, add it to results!
-        results.append({
+        raw_score = float(dist)
+        rerank_delta = 0.0
+        if rerank_active:
+            candidate_ctx = rerank.build_context(row)
+            rerank_delta = rerank.rerank_score(anchor_ctx, candidate_ctx, rerank_weights)
+        adjusted_score = raw_score + rerank_delta
+
+        candidates.append({
             "song_id":  sid,
             "title":    row["title"],
             "artist":   row["artist"],
             "category": row["category"],
-            "score":    round(float(dist), 4),
+            "score":    round(adjusted_score, 4),
         })
-        
-        # Stop exactly when we hit the requested amount
-        if len(results) >= top_k:
+
+        # Without reranking active, stop exactly when we hit the requested
+        # amount — FAISS already returns results in score order, so this is
+        # equivalent to plain cosine top-k. With reranking active, a later
+        # (lower-cosine) candidate can still outrank an earlier one after
+        # adjustment, so keep collecting up to fetch_k and sort below.
+        if not rerank_active and len(candidates) >= top_k:
             break
 
-    return results
+    if rerank_active:
+        candidates.sort(key=lambda r: r["score"], reverse=True)
+
+    return candidates[:top_k]
 
 # ─── Mode 1: Single-song similarity ──────────────────────────────────────────
 
@@ -140,6 +171,11 @@ def find_similar_by_id(song_id: str, top_k: int = 10, **kwargs) -> list[dict]:
     """
     Return top-K songs similar to the given song_id.
     The song must already be in the database and have a saved embedding.
+
+    Auto-builds the Stage 2 rerank anchor context (index/rerank.py) from
+    this song's own row, unless the caller already passed anchor_ctx
+    explicitly (pass anchor_ctx=None to force reranking off). Harmless
+    when a feature is unpopulated for a song — that scorer just returns 0.
     """
     row = get_song_by_id(song_id)
     if row is None:
@@ -148,6 +184,9 @@ def find_similar_by_id(song_id: str, top_k: int = 10, **kwargs) -> list[dict]:
     emb_path = row["embedding_path"]
     if not emb_path or not os.path.exists(emb_path):
         raise FileNotFoundError(f"Embedding not found for {song_id}: {emb_path}")
+
+    if "anchor_ctx" not in kwargs:
+        kwargs["anchor_ctx"] = rerank.build_context(row)
 
     query_vec = load_embedding(emb_path)
     return _run_search(query_vec, top_k, exclude_ids=[song_id], **kwargs)

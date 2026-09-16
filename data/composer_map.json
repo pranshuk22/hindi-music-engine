@@ -1,0 +1,252 @@
+{
+  "_readme": "SUPERSEDED 2026-09-15 by pipeline/metadata_fetcher.py + scripts/fetch_metadata.py, which fetch composer/lyricist/genre/year automatically from Wikidata instead of hand-typed AI knowledge. This file does not scale past a hand-curated pilot batch and should not be extended or used as a data source going forward. Kept only as provenance for the original composer-boost experiment (see data/eval/experiment_log.md) and as a rough sanity check against the automated fetchers results for these same 50 songs — several entries were independently confirmed correct by Wikidata (e.g. Tum Hi Ho/Mithoon, Channa Mereya/Pritam), which is reassuring but not a substitute for the automated source.",
+  "songs": {
+    "aaj_jaane_ki_zid_na_karo_farida_khanum": {
+      "composer": null,
+      "confidence": "low",
+      "note": "traditional-style ghazal, no clear single composer credit"
+    },
+    "tum_itna_jo_muskura_rahe_ho_jagjit_singh": {
+      "composer": "Jagjit Singh",
+      "confidence": "high",
+      "note": "from film Arth (1982)"
+    },
+    "hoshwalon_ko_khabar_kya_jagjit_singh": {
+      "composer": "Jatin-Lalit",
+      "confidence": "medium",
+      "note": "from film Sarfarosh (1999)"
+    },
+    "ranjish_hi_sahi_mehdi_hassan": {
+      "composer": "Mehdi Hassan",
+      "confidence": "high",
+      "note": "non-film ghazal, self-composed"
+    },
+    "chupke_chupke_raat_din_ghulam_ali": {
+      "composer": null,
+      "confidence": "low",
+      "note": "traditional ghazal setting"
+    },
+    "woh_kagaz_ki_kashti_jagjit_singh": {
+      "composer": "Jagjit Singh",
+      "confidence": "high",
+      "note": "non-film ghazal"
+    },
+    "baat_niklegi_toh_phir_jagjit_singh": {
+      "composer": "Jagjit Singh",
+      "confidence": "high",
+      "note": "non-film ghazal"
+    },
+    "hangama_hai_kyon_barpa_ghulam_ali": {
+      "composer": null,
+      "confidence": "low"
+    },
+    "dil_e_nadaan_suraiya": {
+      "composer": "Ghulam Mohammed",
+      "confidence": "medium",
+      "note": "from film Mirza Ghalib (1954)"
+    },
+    "gulon_mein_rang_bhare_mehdi_hassan": {
+      "composer": "Mehdi Hassan",
+      "confidence": "high",
+      "note": "Faiz Ahmed Faiz ghazal, self-composed"
+    },
+    "tum_hi_ho_arijit_singh": {
+      "composer": "Mithoon",
+      "confidence": "high",
+      "note": "from Aashiqui 2 (2013)"
+    },
+    "agar_tum_saath_ho_alka_yagnik": {
+      "composer": "A.R. Rahman",
+      "confidence": "high",
+      "note": "from Tamasha (2015)"
+    },
+    "channa_mereya_arijit_singh": {
+      "composer": "Pritam",
+      "confidence": "high",
+      "note": "from Ae Dil Hai Mushkil (2016)"
+    },
+    "kabira_tochi_raina": {
+      "composer": "Pritam",
+      "confidence": "high",
+      "note": "from Yeh Jawaani Hai Deewani (2013)"
+    },
+    "bekhayali_sachet_tandon": {
+      "composer": "Sachet-Parampara",
+      "confidence": "high",
+      "note": "from Kabir Singh (2019)"
+    },
+    "duaa_arijit_singh": {
+      "composer": "Vishal-Shekhar",
+      "confidence": "medium",
+      "note": "from Shanghai (2012)"
+    },
+    "hamari_adhuri_kahani_arijit_singh": {
+      "composer": "Mithoon",
+      "confidence": "medium",
+      "note": "title track, Hamari Adhuri Kahani (2015)"
+    },
+    "main_jahaan_rahoon_rahat_fateh_ali_khan": {
+      "composer": null,
+      "confidence": "low",
+      "note": "from Namastey London (2007), composer uncertain"
+    },
+    "phir_le_aya_dil_rekha_bhardwaj": {
+      "composer": "Pritam",
+      "confidence": "high",
+      "note": "from Barfi! (2012)"
+    },
+    "tune_jo_na_kaha_mohit_chauhan": {
+      "composer": "Pritam",
+      "confidence": "medium",
+      "note": "from New York (2009)"
+    },
+    "kar_gayi_chull_badshah": {
+      "composer": "Amaal Mallik",
+      "confidence": "medium",
+      "note": "from Kapoor & Sons (2016), feat. Badshah"
+    },
+    "kala_chashma_badshah": {
+      "composer": null,
+      "confidence": "low",
+      "note": "original by Amrik Singh; this version's credit is ambiguous"
+    },
+    "abhi_toh_party_shuru_hui_hai_badshah": {
+      "composer": "Badshah",
+      "confidence": "high",
+      "note": "from Khoobsurat (2014)"
+    },
+    "garmi_badshah": {
+      "composer": "Badshah",
+      "confidence": "high",
+      "note": "from Street Dancer 3D (2020)"
+    },
+    "aankh_marey_neha_kakkar": {
+      "composer": "Tanishk Bagchi",
+      "confidence": "medium",
+      "note": "from Simmba (2018)"
+    },
+    "bom_diggy_diggy_zack_knight": {
+      "composer": "Sachin-Jigar",
+      "confidence": "medium",
+      "note": "from Sonu Ke Titu Ki Sweety (2018)"
+    },
+    "high_rated_gabru_guru_randhawa": {
+      "composer": "Guru Randhawa",
+      "confidence": "high",
+      "note": "independent single (2017)"
+    },
+    "makhna_yo_yo_honey_singh": {
+      "composer": "Yo Yo Honey Singh",
+      "confidence": "high",
+      "note": "independent single (2019)"
+    },
+    "saturday_saturday_badshah": {
+      "composer": "Sharib-Toshi",
+      "confidence": "medium",
+      "note": "from Humpty Sharma Ki Dulhania (2014)"
+    },
+    "badtameez_dil_benny_dayal": {
+      "composer": "Pritam",
+      "confidence": "high",
+      "note": "from Yeh Jawaani Hai Deewani (2013)"
+    },
+    "nashe_si_chadh_gayi_arijit_singh": {
+      "composer": "Vishal-Shekhar",
+      "confidence": "medium",
+      "note": "from Befikre (2016)"
+    },
+    "kun_faya_kun_a_r__rahman": {
+      "composer": "A.R. Rahman",
+      "confidence": "high",
+      "note": "from Rockstar (2011)"
+    },
+    "khwaja_mere_khwaja_a_r__rahman": {
+      "composer": "A.R. Rahman",
+      "confidence": "high",
+      "note": "from Jodhaa Akbar (2008)"
+    },
+    "arziyan_javed_ali": {
+      "composer": "A.R. Rahman",
+      "confidence": "high",
+      "note": "from Delhi-6 (2009)"
+    },
+    "maula_mere_maula_roop_kumar_rathod": {
+      "composer": "Mithoon",
+      "confidence": "high",
+      "note": "from Anwar (2007)"
+    },
+    "bhar_do_jholi_meri_adnan_sami": {
+      "composer": "Himesh Reshammiya",
+      "confidence": "high",
+      "note": "from Bajrangi Bhaijaan (2015)"
+    },
+    "tu_maane_ya_na_maane_wadali_brothers": {
+      "composer": null,
+      "confidence": "low"
+    },
+    "piya_haji_ali_a_r__rahman": {
+      "composer": "A.R. Rahman",
+      "confidence": "high",
+      "note": "from Fiza (2000)"
+    },
+    "nit_khair_mansan_nooran_sisters": {
+      "composer": null,
+      "confidence": "low",
+      "note": "traditional Punjabi sufi rendition"
+    },
+    "chap_tilak_abida_parveen": {
+      "composer": null,
+      "confidence": "high",
+      "note": "traditional Amir Khusrau qawwali — no modern composer, but lyricist is confidently Amir Khusrau"
+    },
+    "afreen_afreen_rahat_fateh_ali_khan": {
+      "composer": null,
+      "confidence": "low",
+      "note": "Coke Studio Pakistan rendition of the Nusrat Fateh Ali Khan original"
+    },
+    "chalo_rehmat_ka_maula_rahat_fateh_ali_khan": {
+      "composer": null,
+      "confidence": "low"
+    },
+    "dil_chahta_hai_shankar_mahadevan": {
+      "composer": "Shankar-Ehsaan-Loy",
+      "confidence": "high",
+      "note": "title track, Dil Chahta Hai (2001)"
+    },
+    "it_s_the_time_to_disco_shaan": {
+      "composer": "Shankar-Ehsaan-Loy",
+      "confidence": "high",
+      "note": "from Kal Ho Naa Ho (2003)"
+    },
+    "gallan_goodiyaan_farhan_akhtar": {
+      "composer": "Shankar-Ehsaan-Loy",
+      "confidence": "high",
+      "note": "from Dil Dhadakne Do (2015)"
+    },
+    "matargashti_mohit_chauhan": {
+      "composer": "A.R. Rahman",
+      "confidence": "high",
+      "note": "from Tamasha (2015)"
+    },
+    "subha_hone_na_de_mika_singh": {
+      "composer": "Sajid-Wajid",
+      "confidence": "medium",
+      "note": "from Desi Boyz (2011)"
+    },
+    "ghungroo_arijit_singh": {
+      "composer": "Vishal-Shekhar",
+      "confidence": "high",
+      "note": "from War (2019)"
+    },
+    "jai_jai_shivshankar_vishal_dadlani": {
+      "composer": "Vishal-Shekhar",
+      "confidence": "high",
+      "note": "from War (2019)"
+    },
+    "london_thumakda_labh_janjua": {
+      "composer": "Sharib-Toshi",
+      "confidence": "medium",
+      "note": "from Queen (2013)"
+    }
+  }
+}

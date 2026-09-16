@@ -5,4 +5,13 @@ data/embeddings/*
 data/embeddings_raw/*
 data/features/*
 data/metadata.db
-data/nlp/*venv/
+data/nlp/*
+venv/
+.venv/
+__pycache__/
+*.pyc
+data/lyrics/*
+.DS_Store
+index/faiss_index.bin
+index/pca_model.pkl
+index/song_id_map.npy

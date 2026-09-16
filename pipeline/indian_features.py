@@ -364,6 +364,20 @@ def extract_raga_probability(
     """
     Return a 30-dimensional probability vector over Hindustani ragas.
 
+    DEPRECATED 2026-09-17: this is still computed and stored in the
+    features JSON for reference, but pipeline/embedder.py's
+    build_fused_vector() no longer includes it in the similarity vector.
+    In practice CompMusic/Essentia are never installed in this environment,
+    so this has always fallen through to step 3/4 below — cosine
+    similarity against 30 hand-typed binary swara templates, softmax-
+    sharpened for confidence it never earned. That is not a raga
+    classifier and was never validated against real labels; it was real
+    weight in the fused vector for a fabricated signal. See
+    build_fused_vector()'s docstring and plan.md Phase 5 for real
+    candidate replacements researched but not yet integrated (a pretrained
+    Hindustani model with undisclosed accuracy, and raga names found in
+    Wikipedia soundtrack-album prose but not cleanly scrapeable yet).
+
     Priority chain:
       1. CompMusic Hindustani raga classifier (if installed)
       2. Essentia TonalExtractor (if installed) — approximate proxy

@@ -4,30 +4,44 @@ index/build_index.py
 Build (or rebuild) the FAISS vector index.
 
 Modes:
-  --fit-pca        Fit PCA on stored raw fused vectors, compress to Nd,
-                   overwrite data/embeddings/*.npy, then build FAISS index.
-                   Run once after the pilot batch completes.
+  --fit-pca        Force-fit PCA on stored raw fused vectors (from
+                   data/embeddings_raw/) regardless of song count, compress
+                   to Nd, write the result to data/embeddings/*.npy (the raw
+                   files are never touched), then build the FAISS index.
 
   --from-features  Rebuild fused vectors from data/features/*.json without
                    re-downloading audio. Use after fixing feature extraction
-                   bugs (murki, tempo_bucket, onset_skewness, raga_probability)
-                   when audio is gone but JSONs still exist. Automatically
-                   implies --fit-pca.
+                   bugs (murki, tempo_bucket, onset_skewness, raga_probability),
+                   or after a bad PCA fit destroyed the raw store, when audio
+                   is gone but JSONs (and data/nlp/*.npy) still exist. If the
+                   stored raw vector was already compressed, CLAP cannot be
+                   recovered — the song is rebuilt with clap_missing=True
+                   instead of being skipped (see build_fused_vector).
+                   Does NOT automatically force PCA — see finalize_embeddings.
 
-  (default)        Assume PCA already fitted and data/embeddings/*.npy
-                   already contain Nd compressed vectors. Just build index.
+  (default)        Assume data/embeddings/*.npy already contain the final
+                   indexed vectors. Just build the FAISS index from them.
 
-Adaptive PCA target:
-  n_components = min(256, n_songs // 3)
-  — At 44 songs  →  14 components  (numerically stable)
-  — At 200 songs →  66 components
-  — At 768+ songs → 256 components  (full spec target)
-  This prevents fitting PCA where n_components ≥ n_samples.
+PCA is applied only via finalize_embeddings(), and only when
+n_songs >= MIN_SONGS_FOR_PCA (currently 200) or --fit-pca is explicitly
+passed. Below that, the full-dimension L2-normalised fused vector is
+indexed directly — fitting N PCA components from far fewer samples doesn't
+compress anything meaningful, it just fits axes to this specific handful
+of songs. When PCA IS used:
+  n_components = min(256, n_songs // 3, raw_dim)
+  — At 200 songs → 66 components
+  — At 768+ songs → 256 components  (ceiling)
+
+The raw fused vector in data/embeddings_raw/<song_id>.npy is written once
+by the ingestion pipeline (or repaired by --from-features) and is never
+overwritten by anything in this file again. The FINAL vector — raw copy or
+PCA-compressed, depending on corpus size — always lives separately in
+data/embeddings/<song_id>.npy, with the DB embedding_path pointed at it.
 
 Output:
   index/faiss_index.bin   FAISS IndexFlatIP (<1k songs) or IndexIVFPQ (≥1k)
   index/song_id_map.npy   Song ID array aligned to FAISS row indices
-  index/pca_model.pkl     Fitted PCA model (--fit-pca / --from-features only)
+  index/pca_model.pkl     Fitted PCA model (only when PCA was actually used)
 
 Usage:
   python index/build_index.py
@@ -46,29 +60,40 @@ import joblib
 from sklearn.decomposition import PCA
 
 sys.path.insert(0, ".")
-from utils.db import get_all_songs, init_db
+from utils.db import get_all_songs, init_db, update_embedding_path
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 
-PCA_PATH        = "index/pca_model.pkl"
-INDEX_PATH      = "index/faiss_index.bin"
-SONG_MAP_PATH   = "index/song_id_map.npy"
-MAX_COMPONENTS  = 256           # absolute ceiling for PCA target
-IVFPQ_THRESHOLD = 1000          # switch to IVF above this many songs
-FEATURES_DIR    = "data/features"
-EMBEDDINGS_DIR  = "data/embeddings_raw"
+PCA_PATH          = "index/pca_model.pkl"
+INDEX_PATH        = "index/faiss_index.bin"
+SONG_MAP_PATH     = "index/song_id_map.npy"
+MAX_COMPONENTS    = 256           # absolute ceiling for PCA target
+IVFPQ_THRESHOLD   = 1000          # switch to IVF above this many songs
+FEATURES_DIR      = "data/features"
+EMBEDDINGS_DIR    = "data/embeddings"       # FINAL indexed vectors — never the raw store
+EMBEDDINGS_RAW_DIR = "data/embeddings_raw"  # raw ~1381d fused vectors — never overwritten past this point
+
+# Below this many songs, PCA is skipped entirely and the full-dimension
+# fused vector is indexed directly. Fitting N components from far fewer
+# samples than that doesn't "compress" anything meaningful — it fits axes
+# to this specific handful of songs, which is overfitting dressed up as
+# dimensionality reduction. 200 is a rough floor, not a magic number: it's
+# comfortably more samples than the ~256d ceiling we'd otherwise target.
+MIN_SONGS_FOR_PCA = 200
 
 
 # ─── Adaptive PCA target ─────────────────────────────────────────────────────
 
 def _adaptive_n_components(n_songs: int, raw_dim: int) -> int:
     """
-    Goldilocks PCA target for the pilot dataset. 
-    Filters noise while preserving acoustic nuance.
+    PCA target scales with how much data actually supports it.
+    Only called when n_songs >= MIN_SONGS_FOR_PCA (see finalize_embeddings) —
+    below that, PCA is skipped entirely rather than forced to a fixed size.
     """
-    target = 24 # The sweet spot for 50 songs
-    log.info(f"Fixed PCA Target: n_components={target}")
+    target = min(MAX_COMPONENTS, n_songs // 3, raw_dim)
+    target = max(target, 2)
+    log.info(f"Adaptive PCA target: n_components={target}  (n_songs={n_songs}, raw_dim={raw_dim})")
     return target
 
 
@@ -89,14 +114,22 @@ def rebuild_embeddings_from_features(songs: list) -> list:
       Reads every feature array from the JSON, then calls
       embedder.build_fused_vector() with those values. The CLAP embedding
       is recovered from the existing .npy file only if it is still the
-      raw ~991d fused vector (first 512d = CLAP). If the stored embedding
-      is already PCA-compressed, that song must be re-downloaded — a warning
-      is printed and the song is skipped.
+      raw ~1893d fused vector (first CLAP_DIM=1024d = CLAP). If the stored embedding
+      is already compressed (from a past PCA fit that overwrote the raw
+      file — see MIN_SONGS_FOR_PCA / finalize_embeddings), CLAP cannot be
+      recovered: the song is rebuilt with clap_missing=True instead of
+      being skipped. This trades away the strongest single signal for that
+      song but keeps it queryable using its intact NLP + handcrafted
+      features, and needs no re-download. Re-run the full pipeline for that
+      song later to restore real CLAP once you're ready to re-fetch audio.
 
     Returns the same `songs` list (DB rows are unchanged).
-    Overwrites data/embeddings/<song_id>.npy with the corrected fused vector.
+    Overwrites data/embeddings_raw/<song_id>.npy with the corrected raw
+    fused vector — this is the raw store, so overwriting it here (to fix a
+    bug in what was previously computed) is intentional. The FINAL indexed
+    vector is written separately by finalize_embeddings(), never here.
     """
-    from pipeline.embedder import build_fused_vector, save_embedding, _l2
+    from pipeline.embedder import build_fused_vector, save_embedding, _l2, CLAP_DIM
     from pipeline.feature_extractor import get_tempo_bucket
 
     rebuilt = 0
@@ -123,18 +156,18 @@ def rebuild_embeddings_from_features(songs: list) -> list:
 
         stored = np.load(embedding_path).astype(np.float32)
 
-        # If already PCA-compressed we cannot recover the 512d CLAP component
-        if stored.shape[0] < 512:
+        # If already compressed we cannot recover the CLAP_DIM CLAP component —
+        # rebuild without it rather than dropping the song entirely.
+        clap_missing = stored.shape[0] < CLAP_DIM
+        if clap_missing:
             log.warning(
-                f"  SKIP {song_id}: stored embedding is {stored.shape[0]}d "
-                "(already PCA-compressed — CLAP component unrecoverable). "
-                "Re-run the full pipeline for this song."
+                f"  {song_id}: stored embedding is {stored.shape[0]}d "
+                "(CLAP component unrecoverable) — rebuilding with clap_missing=True."
             )
-            skipped += 1
-            continue
-
-        # First 512d of the raw fused vector is the weighted CLAP component
-        clap_emb = _l2(stored[:512])
+            clap_emb = np.zeros(CLAP_DIM, dtype=np.float32)
+        else:
+            # First CLAP_DIM dims of the raw fused vector is the weighted CLAP component
+            clap_emb = _l2(stored[:CLAP_DIM])
 
         # ── Load features JSON ───────────────────────────────────────────────
         with open(features_path) as f:
@@ -179,11 +212,20 @@ def rebuild_embeddings_from_features(songs: list) -> list:
             tempo_bucket       = tempo_bucket,
             hnr_mean           = hnr_mean,
             lyrics_missing     = lyrics_missing,
+            clap_missing       = clap_missing,
         )
 
-        save_embedding(fused, embedding_path)
+        # Always write to the dedicated raw path, never back to whatever
+        # row["embedding_path"] currently points at. Bug found 2026-09-15:
+        # once a corpus has been finalized once, embedding_path points at
+        # data/embeddings/ (the FINAL store), not data/embeddings_raw/ — so
+        # writing there let the raw archive go stale (this is exactly the
+        # "raw vector destroyed" failure mode the Phase 0 fix was supposed
+        # to prevent, regressing silently through this second code path).
+        raw_path = os.path.join(EMBEDDINGS_RAW_DIR, f"{song_id}.npy")
+        save_embedding(fused, raw_path)
         rebuilt += 1
-        log.info(f"  ✓ {song_id}  ({fused.shape[0]}d)")
+        log.info(f"  ✓ {song_id}  ({fused.shape[0]}d{'  [no CLAP]' if clap_missing else ''})")
 
     log.info(f"\nRebuilt: {rebuilt}  |  Skipped: {skipped}")
     return songs
@@ -193,7 +235,7 @@ def rebuild_embeddings_from_features(songs: list) -> list:
 
 def fit_and_compress_pca(songs: list) -> list[tuple[str, np.ndarray]]:
     """
-    1. Load all stored embeddings (raw ~991d fused vectors expected).
+    1. Load all stored embeddings (raw ~1893d fused vectors expected).
     2. Validate dimension consistency — print actionable error on mismatch.
     3. Fit PCA with adaptive n_components.
     4. Save PCA model to index/pca_model.pkl.
@@ -207,9 +249,16 @@ def fit_and_compress_pca(songs: list) -> list[tuple[str, np.ndarray]]:
     raw_vecs  = []
 
     for row in songs:
-        emb_path = row["embedding_path"]
-        if not emb_path or not os.path.exists(emb_path):
-            log.warning(f"  Missing embedding for {row['id']} — skipping")
+        # Always read the raw vector from its dedicated path, never from
+        # row["embedding_path"] — once a corpus has been finalized once,
+        # that column points at data/embeddings/ (the FINAL store), not the
+        # raw one. Reading it here would silently PCA-fit on already-
+        # finalized (possibly already-compressed, or just stale) vectors
+        # instead of the true raw ones. Bug found 2026-09-15 — see
+        # rebuild_embeddings_from_features()'s matching write-side fix.
+        emb_path = os.path.join(EMBEDDINGS_RAW_DIR, f"{row['id']}.npy")
+        if not os.path.exists(emb_path):
+            log.warning(f"  Missing raw embedding for {row['id']} at {emb_path} — skipping")
             continue
         vec = np.load(emb_path).astype(np.float32)
         song_ids.append(row["id"])
@@ -261,21 +310,82 @@ def fit_and_compress_pca(songs: list) -> list[tuple[str, np.ndarray]]:
     norms[norms < 1e-8] = 1.0
     compressed /= norms
 
+    # Write the FINAL vector to data/embeddings/ — never overwrite the raw
+    # file at `path` (data/embeddings_raw/). Overwriting it in place was the
+    # root cause of the raw fused vectors being unrecoverably destroyed the
+    # first time this ran: it left no way to re-fit PCA, ablate a feature
+    # group, or rebuild without CLAP later. DB embedding_path is repointed
+    # at the new file so search/eval code doesn't need to know PCA happened.
+    os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
     pairs = []
-    for i, (sid, path) in enumerate(zip(song_ids, emb_paths)):
-        np.save(path, compressed[i])
+    for i, sid in enumerate(song_ids):
+        final_path = os.path.join(EMBEDDINGS_DIR, f"{sid}.npy")
+        np.save(final_path, compressed[i])
+        update_embedding_path(sid, final_path)
         pairs.append((sid, compressed[i]))
 
-    log.info(f"Compressed {len(pairs)} embeddings saved.")
+    log.info(f"Compressed {len(pairs)} embeddings saved → {EMBEDDINGS_DIR}/ (raw files in {EMBEDDINGS_RAW_DIR}/ untouched).")
+    return pairs
+
+
+# ─── Finalisation: PCA if justified, otherwise index full-dimension vectors ──
+
+def finalize_embeddings(songs: list, force_pca: bool = False) -> list:
+    """
+    Produce the FINAL vectors that get indexed, from the raw fused vectors
+    in data/embeddings_raw/.
+
+    Below MIN_SONGS_FOR_PCA, PCA is skipped outright — fitting components
+    on too few samples fits per-song idiosyncrasies, not real structure,
+    and FAISS IndexFlatIP handles a few hundred ~1400d vectors trivially,
+    so there's no compute reason to compress this early either. The raw
+    vector is simply copied (unchanged) to data/embeddings/<song_id>.npy
+    and the DB is repointed there.
+
+    Pass force_pca=True to fit PCA regardless of song count (rare — mainly
+    for explicitly testing the compressed path before the corpus is large).
+    """
+    n = len(songs)
+    use_pca = force_pca or n >= MIN_SONGS_FOR_PCA
+
+    if use_pca:
+        return fit_and_compress_pca(songs)
+
+    log.info(
+        f"\n{n} songs < MIN_SONGS_FOR_PCA ({MIN_SONGS_FOR_PCA}) — skipping PCA. "
+        "Indexing full-dimension fused vectors directly."
+    )
+    os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
+    pairs = []
+    for row in songs:
+        # Same fix as fit_and_compress_pca() above: always read the raw
+        # vector from its dedicated path, never row["embedding_path"].
+        raw_path = os.path.join(EMBEDDINGS_RAW_DIR, f"{row['id']}.npy")
+        if not os.path.exists(raw_path):
+            log.warning(f"  Missing raw embedding for {row['id']} at {raw_path} — skipped")
+            continue
+        vec = np.load(raw_path).astype(np.float32)
+        final_path = os.path.join(EMBEDDINGS_DIR, f"{row['id']}.npy")
+        np.save(final_path, vec)
+        update_embedding_path(row["id"], final_path)
+        pairs.append((row["id"], vec))
+
+    log.info(f"Saved {len(pairs)} full-dimension embeddings → {EMBEDDINGS_DIR}/")
     return pairs
 
 
 # ─── FAISS index construction ─────────────────────────────────────────────────
 
-def build_index(songs: list = None, pca_already_fit: bool = False):
+def build_index(songs: list = None, already_finalized: bool = False):
     """
-    Build FAISS index from compressed embeddings in data/embeddings/.
+    Build FAISS index from the final vectors in data/embeddings/.
     Uses IndexFlatIP for <IVFPQ_THRESHOLD songs, IndexIVFPQ above.
+
+    already_finalized=True means finalize_embeddings() already decided
+    whether PCA was appropriate for this corpus size — suppresses the
+    "looks uncompressed" warning below, since a high-dimensional vector
+    here may be intentional (small corpus, PCA correctly skipped) rather
+    than a forgotten compression step.
     """
     if songs is None:
         songs = get_all_songs()
@@ -303,11 +413,13 @@ def build_index(songs: list = None, pca_already_fit: bool = False):
     n_songs, dim = matrix.shape
     log.info(f"Index matrix: {n_songs} × {dim}d")
 
-    # Warn if embeddings look uncompressed
-    if dim >= 900 and not pca_already_fit:
+    # Warn if embeddings look uncompressed and nothing already decided that's fine
+    if dim >= 900 and not already_finalized:
         log.warning(
-            f"Embeddings are {dim}d — appears to be raw fused vector (not PCA-compressed). "
-            "Run with --fit-pca to compress before indexing."
+            f"Embeddings are {dim}d and look like raw fused vectors. If you haven't "
+            "run finalize_embeddings yet (via --fit-pca or --from-features), do that "
+            "first — indexing data/embeddings_raw/ directly bypasses the "
+            "PCA-vs-skip decision and DB path bookkeeping."
         )
 
     if n_songs < IVFPQ_THRESHOLD:
@@ -418,17 +530,17 @@ Examples:
     log.info(f"Found {len(songs)} processed songs.")
 
     if args.from_features:
-        log.info("\n=== Mode: Rebuild from JSONs → Fit PCA → Build Index ===")
+        log.info("\n=== Mode: Rebuild from JSONs → Finalize → Build Index ===")
         songs = rebuild_embeddings_from_features(songs)
-        fit_and_compress_pca(songs)
+        finalize_embeddings(songs, force_pca=args.fit_pca)
         songs = get_all_songs()
-        build_index(songs, pca_already_fit=True)
+        build_index(songs, already_finalized=True)
 
     elif args.fit_pca:
-        log.info("\n=== Mode: Fit PCA → Compress → Build Index ===")
-        fit_and_compress_pca(songs)
+        log.info("\n=== Mode: Finalize (PCA forced) → Build Index ===")
+        finalize_embeddings(songs, force_pca=True)
         songs = get_all_songs()
-        build_index(songs, pca_already_fit=True)
+        build_index(songs, already_finalized=True)
 
     else:
         log.info("\n=== Mode: Build Index from existing compressed embeddings ===")

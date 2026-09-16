@@ -1,0 +1,84 @@
+{
+  "_readme": "Hand-judged relevance set. This is NOT derived from the category column — it's an independent judgment of 'would a listener who likes the anchor actually enjoy this recommendation'. grade 2 = excellent match (same singer/style/mood/production, you'd put it on the same playlist without thinking), grade 1 = decent/related (some real overlap but a noticeably weaker match, or right mood/wrong energy), anything not listed = grade 0 (not a relevant recommendation for this anchor). This file was DRAFTED by an AI reviewing the track list, not verified by ear against the actual audio — the project owner should listen and correct entries before trusting scores computed from it. Edit freely: add anchors, change grades, remove judgments you disagree with.",
+  "anchors": [
+    {
+      "anchor_id": "tum_itna_jo_muskura_rahe_ho_jagjit_singh",
+      "note": "Classic Jagjit Singh ghazal — sparse harmonium/sarangi, restrained vocal, melancholic/sad mood specifically (owner correction: Hoshwalon Ko Khabar Kya is a more romantic-mood ghazal by the same singer, so it's a decent but not excellent match on mood; Gulon Mein Rang Bhare doesn't fit well enough to include at all).",
+      "judgments": [
+        {"song_id": "hoshwalon_ko_khabar_kya_jagjit_singh", "grade": 1},
+        {"song_id": "woh_kagaz_ki_kashti_jagjit_singh", "grade": 2},
+        {"song_id": "baat_niklegi_toh_phir_jagjit_singh", "grade": 2},
+        {"song_id": "ranjish_hi_sahi_mehdi_hassan", "grade": 1},
+        {"song_id": "chupke_chupke_raat_din_ghulam_ali", "grade": 1},
+        {"song_id": "hangama_hai_kyon_barpa_ghulam_ali", "grade": 1},
+        {"song_id": "dil_e_nadaan_suraiya", "grade": 1}
+      ]
+    },
+    {
+      "anchor_id": "kar_gayi_chull_badshah",
+      "note": "Badshah-style EDM/hip-hop Bollywood party track — rap verses, synth-heavy, fast.",
+      "judgments": [
+        {"song_id": "kala_chashma_badshah", "grade": 2},
+        {"song_id": "garmi_badshah", "grade": 2},
+        {"song_id": "saturday_saturday_badshah", "grade": 2},
+        {"song_id": "abhi_toh_party_shuru_hui_hai_badshah", "grade": 2},
+        {"song_id": "makhna_yo_yo_honey_singh", "grade": 1},
+        {"song_id": "high_rated_gabru_guru_randhawa", "grade": 1},
+        {"song_id": "bom_diggy_diggy_zack_knight", "grade": 1},
+        {"song_id": "aankh_marey_neha_kakkar", "grade": 1},
+        {"song_id": "badtameez_dil_benny_dayal", "grade": 1}
+      ]
+    },
+    {
+      "anchor_id": "kun_faya_kun_a_r__rahman",
+      "note": "A.R. Rahman devotional qawwali — layered vocals, harmonium/tabla build, meditative.",
+      "judgments": [
+        {"song_id": "khwaja_mere_khwaja_a_r__rahman", "grade": 2},
+        {"song_id": "piya_haji_ali_a_r__rahman", "grade": 2},
+        {"song_id": "arziyan_javed_ali", "grade": 2},
+        {"song_id": "maula_mere_maula_roop_kumar_rathod", "grade": 1},
+        {"song_id": "chalo_rehmat_ka_maula_rahat_fateh_ali_khan", "grade": 1},
+        {"song_id": "afreen_afreen_rahat_fateh_ali_khan", "grade": 1},
+        {"song_id": "tu_maane_ya_na_maane_wadali_brothers", "grade": 1},
+        {"song_id": "chap_tilak_abida_parveen", "grade": 1}
+      ]
+    },
+    {
+      "anchor_id": "chap_tilak_abida_parveen",
+      "note": "Fast, virtuosic classical qawwali (Abida Parveen) — distinct from the softer devotional Rahman qawwalis above. Owner correction: Afreen Afreen is more of a romantic sufi song than a hard qawwali and doesn't belong in this cluster (it stays judged under the Kun Faya Kun anchor instead, where it fits better).",
+      "judgments": [
+        {"song_id": "nit_khair_mansan_nooran_sisters", "grade": 2},
+        {"song_id": "tu_maane_ya_na_maane_wadali_brothers", "grade": 2},
+        {"song_id": "chalo_rehmat_ka_maula_rahat_fateh_ali_khan", "grade": 1},
+        {"song_id": "kun_faya_kun_a_r__rahman", "grade": 1},
+        {"song_id": "gulon_mein_rang_bhare_mehdi_hassan", "grade": 1}
+      ]
+    },
+    {
+      "anchor_id": "tum_hi_ho_arijit_singh",
+      "note": "Soft, restrained romantic ballad — piano/strings, Arijit Singh's understated delivery.",
+      "judgments": [
+        {"song_id": "channa_mereya_arijit_singh", "grade": 2},
+        {"song_id": "hamari_adhuri_kahani_arijit_singh", "grade": 2},
+        {"song_id": "duaa_arijit_singh", "grade": 2},
+        {"song_id": "kabira_tochi_raina", "grade": 1},
+        {"song_id": "agar_tum_saath_ho_alka_yagnik", "grade": 1},
+        {"song_id": "phir_le_aya_dil_rekha_bhardwaj", "grade": 1},
+        {"song_id": "tune_jo_na_kaha_mohit_chauhan", "grade": 1},
+        {"song_id": "main_jahaan_rahoon_rahat_fateh_ali_khan", "grade": 1}
+      ]
+    },
+    {
+      "anchor_id": "dil_chahta_hai_shankar_mahadevan",
+      "note": "Breezy upbeat pop-rock, friendship-anthem energy, guitar-driven — not club/EDM party.",
+      "judgments": [
+        {"song_id": "it_s_the_time_to_disco_shaan", "grade": 2},
+        {"song_id": "gallan_goodiyaan_farhan_akhtar", "grade": 2},
+        {"song_id": "matargashti_mohit_chauhan", "grade": 2},
+        {"song_id": "london_thumakda_labh_janjua", "grade": 1},
+        {"song_id": "ghungroo_arijit_singh", "grade": 1},
+        {"song_id": "nashe_si_chadh_gayi_arijit_singh", "grade": 1}
+      ]
+    }
+  ]
+}

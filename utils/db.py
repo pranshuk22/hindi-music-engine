@@ -77,6 +77,11 @@ def init_db():
         ("lyrics_missing",         "INTEGER DEFAULT 0"),
         ("raga_missing",           "INTEGER DEFAULT 0"),       # added: raga classifier unavailable
         ("stem_separation_failed", "INTEGER DEFAULT 0"),       # added: demucs fallback flag
+        ("composer",               "TEXT"),                    # added: Phase 2 metadata enrichment
+        ("lyricist",               "TEXT"),                    # added: automated Wikidata fetch
+        ("genre",                  "TEXT"),                    # added: automated Wikidata fetch (comma-joined)
+        ("release_year",           "INTEGER"),                 # added: automated Wikidata fetch
+        ("wikidata_id",            "TEXT"),                    # added: for debugging/spot-checks
     ]
 
     for col, typedef in migrations:
@@ -134,6 +139,67 @@ def insert_song(
         embedding_path, features_path, nlp_path,
         int(lyrics_missing), int(raga_missing), int(stem_separation_failed),
     ))
+    conn.commit()
+    conn.close()
+
+
+def update_embedding_path(song_id: str, embedding_path: str) -> None:
+    """
+    Point a song at a new embedding file without touching anything else.
+
+    Used when the final indexed vector (post-PCA, or post-finalisation when
+    PCA is skipped) is written to a new path rather than overwriting the
+    raw fused vector in place — see index/build_index.py finalize_embeddings().
+    """
+    conn = _connect()
+    conn.execute(
+        "UPDATE songs SET embedding_path=? WHERE id=?", (embedding_path, song_id)
+    )
+    conn.commit()
+    conn.close()
+
+
+def update_song_metadata(
+    song_id:       str,
+    composer:      str        = None,
+    lyricist:      str        = None,
+    genre:         list[str]  = None,
+    release_year:  int        = None,
+    wikidata_id:   str        = None,
+) -> None:
+    """
+    Set enrichment metadata for an already-inserted song. Used by both the
+    live ingestion pipeline (pipeline/processor.py, for new songs) and
+    scripts/fetch_metadata.py (backfill for existing ones) — same function
+    either way, since both get their data from
+    pipeline/metadata_fetcher.py's automated Wikidata lookup, not from
+    hand-typed knowledge (see that module's docstring for why the earlier
+    data/composer_map.json approach doesn't scale).
+
+    Only fields actually passed (not None) are updated — calling this with
+    just composer=... leaves lyricist/genre/etc. untouched. `genre` is
+    comma-joined for storage since SQLite has no native list type.
+    """
+    fields, values = [], []
+    if composer is not None:
+        fields.append("composer"); values.append(composer)
+    if lyricist is not None:
+        fields.append("lyricist"); values.append(lyricist)
+    if genre is not None:
+        fields.append("genre"); values.append(", ".join(genre) if genre else None)
+    if release_year is not None:
+        fields.append("release_year"); values.append(release_year)
+    if wikidata_id is not None:
+        fields.append("wikidata_id"); values.append(wikidata_id)
+
+    if not fields:
+        return
+
+    set_clause = ", ".join(f"{f}=?" for f in fields)
+    values.append(song_id)
+
+    conn = _connect()
+    conn.execute(f"UPDATE songs SET {set_clause} WHERE id=?", values)
     conn.commit()
     conn.close()
 

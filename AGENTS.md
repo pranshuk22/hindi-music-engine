@@ -31,7 +31,7 @@ Runs offline, on Kaggle, or triggered by the async worker queue. Never runs sync
 * **Trim:** `pydub`/`ffmpeg` extracts a 90-second clip. Start time is configurable per song via `clip_start` in `songs.csv` (default: 15s).
 * **Stem:** `demucs` (htdemucs\_light checkpoint) separates the clip into `clip_vocals.wav` and `clip_instr.wav`.
 * **Extract:** `librosa` + `pipeline/indian_features.py` compute the full handcrafted feature set (~95 dims). See `FEATURES.md` for the complete schema.
-* **Embed:** `msclap` generates a 512d CLAP embedding. `SentenceTransformers` generates a 384d lyric embedding (if lyrics available).
+* **Embed:** `msclap` generates a 1024d CLAP embedding (verified empirically 2026-09-15 — this doc previously said 512d, which was never checked against a real embedding until CLAP recovery). `SentenceTransformers` generates a 768d lyric embedding (also corrected; previously documented as 384d).
 * **Fuse:** All feature groups are independently L2-normalised, then concatenated with explicit weights before a final L2 normalisation. See `FEATURES.md` — Fusion & Weighting section.
 * **Compress:** PCA reduces the fused vector to 256d. The PCA model is fit once on the pilot dataset and reused for all subsequent songs.
 * **Store:** `data/embeddings/song_id.npy` (256d vector), `data/features/song_id.json` (raw features), `data/nlp/song_id.npy` (384d lyric vector), `data/metadata.db` (SQLite).

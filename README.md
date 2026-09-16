@@ -9,7 +9,7 @@ An AI-powered music recommendation system built specifically for the acoustic nu
 * **Zero Audio Storage:** Ephemeral pipeline downloads, processes, and immediately deletes all raw audio. Disk footprint stays under 500MB even for 50,000+ songs.
 * **Smart Intro Skipping:** Automatically starts the 90-second analysis window at 15s (configurable per song via `clip_start`) to skip instrumental intros common in Bollywood productions.
 * **Source Separation First:** Uses `demucs` (htdemucs\_light) to split audio into vocal and instrumental stems before feature extraction, enabling India-specific vocal and rhythmic analysis.
-* **Hybrid Feature Vector:** Combines CLAP neural embeddings (512d), multilingual NLP lyric embeddings (384d), and ~95d of handcrafted Indian-specific acoustic features — fused, weighted, and PCA-reduced to 256d before indexing.
+* **Hybrid Feature Vector:** Combines CLAP neural embeddings (1024d), multilingual NLP lyric embeddings (768d), and ~101d of handcrafted Indian-specific acoustic features — fused, weighted, and indexed at full ~1893d until the corpus is large enough to justify PCA compression (see `MIN_SONGS_FOR_PCA` in `index/build_index.py`).
 * **Indian-Specific Acoustics:** Extracts features designed for Hindustani and Bollywood music topology — microtonal pitch profiles (36-bin PCP replacing standard 12-bin chroma), meend (pitch glide) variance, murki ornamentation index, tabla vs. 808 onset skewness, and vocal energy ratio.
 * **Blazing Fast Search:** FAISS (IndexFlatIP for pilot, IndexIVFPQ for scale) queries 50,000+ songs in milliseconds.
 * **Lyrics-Aware Matching:** SentenceTransformer embeddings on Hindi/Urdu lyrics prevent acoustic matches that clash in mood or lyric meaning.
@@ -159,13 +159,14 @@ URL / Song Name
       │    energy ratio)
       │
       ├── CLAP embedding
-      │   (msclap, 512d)
+      │   (msclap, 1024d)
       │
       ▼
-  Weighted fusion → L2 normalise → ~991d vector
+  Weighted fusion → L2 normalise → ~1893d vector
       │
       ▼
-  PCA → 256d compressed vector
+  PCA → Nd compressed vector, ONLY once corpus size >= MIN_SONGS_FOR_PCA (200)
+  Below that: index the full ~1893d vector directly — see index/build_index.py
       │
       ▼
   data/embeddings/song_id.npy   +   data/metadata.db

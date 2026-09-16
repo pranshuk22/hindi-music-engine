@@ -1,0 +1,453 @@
+{
+  "_readme": "AUTO-GENERATED from Last.fm real-listener similarity data (pipeline/lastfm_client.py + this script), NOT hand-judged by the project owner or drafted by an AI reviewing metadata. Grade thresholds are an uncalibrated starting guess — see _grade_from_match() in scripts/expand_golden_from_lastfm.py. This is a SEPARATE file from data/eval/golden_relevance.json (the owner-reviewed file) — spot-check a sample of these judgments before trusting them, and decide whether/how to merge with the hand-reviewed set. Score against this file independently with: python scripts/evaluate_golden.py --golden data/eval/golden_relevance_lastfm.json",
+  "anchors": [
+    {
+      "anchor_id": "tum_itna_jo_muskura_rahe_ho_jagjit_singh",
+      "note": "Auto-generated from Last.fm similar-tracks for Tum Itna Jo Muskura Rahe Ho — Jagjit Singh",
+      "judgments": [
+        {
+          "song_id": "chupke_chupke_raat_din_ghulam_ali",
+          "grade": 2,
+          "lastfm_match": 0.503,
+          "lastfm_title": "Chupke Chupke Raat Din",
+          "lastfm_artist": "Ghulam Ali"
+        },
+        {
+          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
+          "grade": 1,
+          "lastfm_match": 0.322,
+          "lastfm_title": "Phir Le Aya Dil",
+          "lastfm_artist": "Pritam"
+        },
+        {
+          "song_id": "ranjish_hi_sahi_mehdi_hassan",
+          "grade": 1,
+          "lastfm_match": 0.311,
+          "lastfm_title": "Ranjish Hi Sahi",
+          "lastfm_artist": "Mehdi Hassan"
+        }
+      ]
+    },
+    {
+      "anchor_id": "hoshwalon_ko_khabar_kya_jagjit_singh",
+      "note": "Auto-generated from Last.fm similar-tracks for Hoshwalon Ko Khabar Kya — Jagjit Singh",
+      "judgments": [
+        {
+          "song_id": "chupke_chupke_raat_din_ghulam_ali",
+          "grade": 2,
+          "lastfm_match": 0.579,
+          "lastfm_title": "Chupke Chupke Raat Din",
+          "lastfm_artist": "Ghulam Ali"
+        },
+        {
+          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
+          "grade": 2,
+          "lastfm_match": 0.462,
+          "lastfm_title": "Phir Le Aya Dil",
+          "lastfm_artist": "Pritam"
+        },
+        {
+          "song_id": "ranjish_hi_sahi_mehdi_hassan",
+          "grade": 2,
+          "lastfm_match": 0.448,
+          "lastfm_title": "Ranjish Hi Sahi",
+          "lastfm_artist": "Mehdi Hassan"
+        }
+      ]
+    },
+    {
+      "anchor_id": "ranjish_hi_sahi_mehdi_hassan",
+      "note": "Auto-generated from Last.fm similar-tracks for Ranjish Hi Sahi — Mehdi Hassan",
+      "judgments": [
+        {
+          "song_id": "gulon_mein_rang_bhare_mehdi_hassan",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Gulon Mein Rang Bhare",
+          "lastfm_artist": "Mehdi Hassan"
+        },
+        {
+          "song_id": "aaj_jaane_ki_zid_na_karo_farida_khanum",
+          "grade": 2,
+          "lastfm_match": 0.641,
+          "lastfm_title": "Aaj Jane Ki Zid Na Karo",
+          "lastfm_artist": "Farida Khanum"
+        },
+        {
+          "song_id": "hoshwalon_ko_khabar_kya_jagjit_singh",
+          "grade": 2,
+          "lastfm_match": 0.544,
+          "lastfm_title": "Hoshwalon Ko Khabar Kya",
+          "lastfm_artist": "Jagjit Singh"
+        }
+      ]
+    },
+    {
+      "anchor_id": "chupke_chupke_raat_din_ghulam_ali",
+      "note": "Auto-generated from Last.fm similar-tracks for Chupke Chupke Raat Din — Ghulam Ali",
+      "judgments": [
+        {
+          "song_id": "hangama_hai_kyon_barpa_ghulam_ali",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Hungama Hai Kyon Barpa",
+          "lastfm_artist": "Ghulam Ali"
+        },
+        {
+          "song_id": "ranjish_hi_sahi_mehdi_hassan",
+          "grade": 2,
+          "lastfm_match": 0.683,
+          "lastfm_title": "Ranjish Hi Sahi",
+          "lastfm_artist": "Mehdi Hassan"
+        },
+        {
+          "song_id": "aaj_jaane_ki_zid_na_karo_farida_khanum",
+          "grade": 2,
+          "lastfm_match": 0.495,
+          "lastfm_title": "Aaj Jane Ki Zid Na Karo",
+          "lastfm_artist": "Farida Khanum"
+        }
+      ]
+    },
+    {
+      "anchor_id": "woh_kagaz_ki_kashti_jagjit_singh",
+      "note": "Auto-generated from Last.fm similar-tracks for Woh Kagaz Ki Kashti — Jagjit Singh",
+      "judgments": [
+        {
+          "song_id": "ranjish_hi_sahi_mehdi_hassan",
+          "grade": 2,
+          "lastfm_match": 0.999,
+          "lastfm_title": "Ranjish Hi Sahi",
+          "lastfm_artist": "Asha Bhosle"
+        }
+      ]
+    },
+    {
+      "anchor_id": "hangama_hai_kyon_barpa_ghulam_ali",
+      "note": "Auto-generated from Last.fm similar-tracks for Hangama Hai Kyon Barpa — Ghulam Ali",
+      "judgments": [
+        {
+          "song_id": "aaj_jaane_ki_zid_na_karo_farida_khanum",
+          "grade": 1,
+          "lastfm_match": 0.24,
+          "lastfm_title": "Aaj Jane Ki Zid Na Karo",
+          "lastfm_artist": "Farida Khanum"
+        }
+      ]
+    },
+    {
+      "anchor_id": "gulon_mein_rang_bhare_mehdi_hassan",
+      "note": "Auto-generated from Last.fm similar-tracks for Gulon Mein Rang Bhare — Mehdi Hassan",
+      "judgments": [
+        {
+          "song_id": "ranjish_hi_sahi_mehdi_hassan",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Ranjish Hi Sahi",
+          "lastfm_artist": "Mehdi Hassan"
+        },
+        {
+          "song_id": "aaj_jaane_ki_zid_na_karo_farida_khanum",
+          "grade": 2,
+          "lastfm_match": 0.571,
+          "lastfm_title": "Aaj Jane Ki Zid Na Karo",
+          "lastfm_artist": "Farida Khanum"
+        }
+      ]
+    },
+    {
+      "anchor_id": "tum_hi_ho_arijit_singh",
+      "note": "Auto-generated from Last.fm similar-tracks for Tum Hi Ho — Arijit Singh",
+      "judgments": [
+        {
+          "song_id": "tune_jo_na_kaha_mohit_chauhan",
+          "grade": 2,
+          "lastfm_match": 0.984,
+          "lastfm_title": "Tune Jo Na Kaha",
+          "lastfm_artist": "Mohit Chauhan"
+        },
+        {
+          "song_id": "maula_mere_maula_roop_kumar_rathod",
+          "grade": 2,
+          "lastfm_match": 0.961,
+          "lastfm_title": "Maula Mere Maula",
+          "lastfm_artist": "Roop Kumar Rathod"
+        }
+      ]
+    },
+    {
+      "anchor_id": "agar_tum_saath_ho_alka_yagnik",
+      "note": "Auto-generated from Last.fm similar-tracks for Agar Tum Saath Ho — Alka Yagnik",
+      "judgments": [
+        {
+          "song_id": "kabira_tochi_raina",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Kabira",
+          "lastfm_artist": "Pritam"
+        },
+        {
+          "song_id": "matargashti_mohit_chauhan",
+          "grade": 2,
+          "lastfm_match": 0.631,
+          "lastfm_title": "Matargashti",
+          "lastfm_artist": "Mohit Chauhan"
+        }
+      ]
+    },
+    {
+      "anchor_id": "main_jahaan_rahoon_rahat_fateh_ali_khan",
+      "note": "Auto-generated from Last.fm similar-tracks for Main Jahaan Rahoon — Rahat Fateh Ali Khan",
+      "judgments": [
+        {
+          "song_id": "hoshwalon_ko_khabar_kya_jagjit_singh",
+          "grade": 2,
+          "lastfm_match": 0.861,
+          "lastfm_title": "Hoshwalon Ko Khabar Kya",
+          "lastfm_artist": "Jagjit Singh"
+        },
+        {
+          "song_id": "agar_tum_saath_ho_alka_yagnik",
+          "grade": 2,
+          "lastfm_match": 0.731,
+          "lastfm_title": "Agar Tum Saath Ho",
+          "lastfm_artist": "Alka Yagnik"
+        }
+      ]
+    },
+    {
+      "anchor_id": "phir_le_aya_dil_rekha_bhardwaj",
+      "note": "Auto-generated from Last.fm similar-tracks for Phir Le Aya Dil — Rekha Bhardwaj",
+      "judgments": [
+        {
+          "song_id": "tune_jo_na_kaha_mohit_chauhan",
+          "grade": 1,
+          "lastfm_match": 0.297,
+          "lastfm_title": "Tujhko Jo Paaya",
+          "lastfm_artist": "Mohit Chauhan"
+        }
+      ]
+    },
+    {
+      "anchor_id": "tune_jo_na_kaha_mohit_chauhan",
+      "note": "Auto-generated from Last.fm similar-tracks for Tune Jo Na Kaha — Mohit Chauhan",
+      "judgments": [
+        {
+          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
+          "grade": 2,
+          "lastfm_match": 0.791,
+          "lastfm_title": "Phir Le Aya Dil",
+          "lastfm_artist": "Arijit Singh"
+        }
+      ]
+    },
+    {
+      "anchor_id": "abhi_toh_party_shuru_hui_hai_badshah",
+      "note": "Auto-generated from Last.fm similar-tracks for Abhi Toh Party Shuru Hui Hai — Badshah",
+      "judgments": [
+        {
+          "song_id": "kar_gayi_chull_badshah",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Kar Gayi Chull",
+          "lastfm_artist": "Badshah"
+        }
+      ]
+    },
+    {
+      "anchor_id": "bom_diggy_diggy_zack_knight",
+      "note": "Auto-generated from Last.fm similar-tracks for Bom Diggy Diggy — Zack Knight",
+      "judgments": [
+        {
+          "song_id": "it_s_the_time_to_disco_shaan",
+          "grade": 2,
+          "lastfm_match": 0.554,
+          "lastfm_title": "It's the Time to Disco",
+          "lastfm_artist": "Shankar-Ehsaan-Loy"
+        }
+      ]
+    },
+    {
+      "anchor_id": "kun_faya_kun_a_r__rahman",
+      "note": "Auto-generated from Last.fm similar-tracks for Kun Faya Kun — A.R. Rahman",
+      "judgments": [
+        {
+          "song_id": "khwaja_mere_khwaja_a_r__rahman",
+          "grade": 2,
+          "lastfm_match": 0.945,
+          "lastfm_title": "Khwaja Mere Khwaja",
+          "lastfm_artist": "A.R. Rahman"
+        }
+      ]
+    },
+    {
+      "anchor_id": "khwaja_mere_khwaja_a_r__rahman",
+      "note": "Auto-generated from Last.fm similar-tracks for Khwaja Mere Khwaja — A.R. Rahman",
+      "judgments": [
+        {
+          "song_id": "kun_faya_kun_a_r__rahman",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Kun Faya Kun",
+          "lastfm_artist": "A.R. Rahman"
+        },
+        {
+          "song_id": "arziyan_javed_ali",
+          "grade": 2,
+          "lastfm_match": 0.937,
+          "lastfm_title": "Arziyan",
+          "lastfm_artist": "Javed Ali"
+        },
+        {
+          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
+          "grade": 2,
+          "lastfm_match": 0.549,
+          "lastfm_title": "Phir Le Aya Dil",
+          "lastfm_artist": "Pritam"
+        },
+        {
+          "song_id": "agar_tum_saath_ho_alka_yagnik",
+          "grade": 1,
+          "lastfm_match": 0.4,
+          "lastfm_title": "Agar Tum Saath Ho",
+          "lastfm_artist": "Alka Yagnik"
+        },
+        {
+          "song_id": "matargashti_mohit_chauhan",
+          "grade": 1,
+          "lastfm_match": 0.381,
+          "lastfm_title": "Matargashti",
+          "lastfm_artist": "Mohit Chauhan"
+        }
+      ]
+    },
+    {
+      "anchor_id": "arziyan_javed_ali",
+      "note": "Auto-generated from Last.fm similar-tracks for Arziyan — Javed Ali",
+      "judgments": [
+        {
+          "song_id": "khwaja_mere_khwaja_a_r__rahman",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Khwaja Mere Khwaja",
+          "lastfm_artist": "A.R. Rahman"
+        },
+        {
+          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
+          "grade": 2,
+          "lastfm_match": 0.833,
+          "lastfm_title": "Phir Le Aya Dil",
+          "lastfm_artist": "Pritam"
+        },
+        {
+          "song_id": "hoshwalon_ko_khabar_kya_jagjit_singh",
+          "grade": 2,
+          "lastfm_match": 0.573,
+          "lastfm_title": "Hoshwalon Ko Khabar Kya",
+          "lastfm_artist": "Jagjit Singh"
+        }
+      ]
+    },
+    {
+      "anchor_id": "maula_mere_maula_roop_kumar_rathod",
+      "note": "Auto-generated from Last.fm similar-tracks for Maula Mere Maula — Roop Kumar Rathod",
+      "judgments": [
+        {
+          "song_id": "tum_hi_ho_arijit_singh",
+          "grade": 2,
+          "lastfm_match": 0.836,
+          "lastfm_title": "Tum Hi Ho",
+          "lastfm_artist": "Arijit Singh"
+        },
+        {
+          "song_id": "tune_jo_na_kaha_mohit_chauhan",
+          "grade": 2,
+          "lastfm_match": 0.516,
+          "lastfm_title": "Tune Jo Na Kaha",
+          "lastfm_artist": "Mohit Chauhan"
+        },
+        {
+          "song_id": "subha_hone_na_de_mika_singh",
+          "grade": 1,
+          "lastfm_match": 0.313,
+          "lastfm_title": "Subha Hone Na De",
+          "lastfm_artist": "Mika Singh"
+        }
+      ]
+    },
+    {
+      "anchor_id": "piya_haji_ali_a_r__rahman",
+      "note": "Auto-generated from Last.fm similar-tracks for Piya Haji Ali — A.R. Rahman",
+      "judgments": [
+        {
+          "song_id": "arziyan_javed_ali",
+          "grade": 2,
+          "lastfm_match": 1.0,
+          "lastfm_title": "Arziyan",
+          "lastfm_artist": "Javed Ali"
+        },
+        {
+          "song_id": "khwaja_mere_khwaja_a_r__rahman",
+          "grade": 2,
+          "lastfm_match": 0.819,
+          "lastfm_title": "Khwaja Mere Khwaja",
+          "lastfm_artist": "A.R. Rahman"
+        },
+        {
+          "song_id": "hoshwalon_ko_khabar_kya_jagjit_singh",
+          "grade": 1,
+          "lastfm_match": 0.286,
+          "lastfm_title": "Hoshwalon Ko Khabar Kya",
+          "lastfm_artist": "Jagjit Singh"
+        },
+        {
+          "song_id": "agar_tum_saath_ho_alka_yagnik",
+          "grade": 1,
+          "lastfm_match": 0.264,
+          "lastfm_title": "Agar Tum Saath Ho",
+          "lastfm_artist": "Alka Yagnik"
+        }
+      ]
+    },
+    {
+      "anchor_id": "dil_chahta_hai_shankar_mahadevan",
+      "note": "Auto-generated from Last.fm similar-tracks for Dil Chahta Hai — Shankar Mahadevan",
+      "judgments": [
+        {
+          "song_id": "matargashti_mohit_chauhan",
+          "grade": 2,
+          "lastfm_match": 0.636,
+          "lastfm_title": "Matargashti",
+          "lastfm_artist": "Mohit Chauhan"
+        }
+      ]
+    },
+    {
+      "anchor_id": "subha_hone_na_de_mika_singh",
+      "note": "Auto-generated from Last.fm similar-tracks for Subha Hone Na De — Mika Singh",
+      "judgments": [
+        {
+          "song_id": "agar_tum_saath_ho_alka_yagnik",
+          "grade": 2,
+          "lastfm_match": 0.578,
+          "lastfm_title": "Agar Tum Saath Ho (From \"Tamasha\")",
+          "lastfm_artist": "Alka Yagnik"
+        },
+        {
+          "song_id": "kabira_tochi_raina",
+          "grade": 2,
+          "lastfm_match": 0.559,
+          "lastfm_title": "Kabira",
+          "lastfm_artist": "Rekha Bhardwaj"
+        },
+        {
+          "song_id": "maula_mere_maula_roop_kumar_rathod",
+          "grade": 2,
+          "lastfm_match": 0.525,
+          "lastfm_title": "Maula Mere Maula",
+          "lastfm_artist": "Roop Kumar Rathod"
+        }
+      ]
+    }
+  ]
+}

@@ -12,14 +12,22 @@ Extraction sequence (FEATURES.md steps 1–18, 45s smart-trim variant):
       └─ on failure: fallback to full clip, set stem_separation_failed=True
   5.  Extract base spectral features (full clip)
   6.  Extract Indian-specific features (vocal stem / full clip / instr stem)
-  7.  CLAP embedding + lyrics fetch IN PARALLEL
+  7.  CLAP embedding + lyrics fetch + metadata fetch, ALL IN PARALLEL
   8.  NLP lyric embedding (zero vector if lyrics missing)
   9.  DELETE all audio (clip + stems)
   10. Build weighted fused vector (~997d) via embedder.build_fused_vector()
   11. PCA compress → 256d if pca_model.pkl exists;
       else save raw to embeddings_raw/ for build_index.py to compress later
-  12. Save embedding, features JSON, NLP vector
-  13. Insert to SQLite with all quality flags
+  12. Save embedding, features JSON, NLP vector, raw lyrics text
+  13. Insert to SQLite with all quality flags + composer/lyricist/genre/year
+
+Scaling note: composer/lyricist/genre/year come from
+pipeline/metadata_fetcher.py (automated Wikidata lookup) at ingestion time
+for every song, new or old — there is no separate manual step and no
+hand-maintained per-song data file to keep updating as the catalog grows
+(see that module's docstring; it replaced an earlier hand-typed
+data/composer_map.json that didn't scale). scripts/fetch_metadata.py exists
+only to backfill songs processed before this was wired in.
 
 Thread safety:
   CLAP and demucs models are loaded once at module level.
@@ -46,20 +54,23 @@ from pipeline.embedder         import (
     save_embedding,
 )
 from pipeline.lyrics_extractor import fetch_lyrics
+from pipeline.metadata_fetcher import fetch_song_metadata
+from pipeline.mood_tagger      import tag_mood
 from pipeline.nlp_embedder     import get_text_embedding, save_embedding as save_nlp_embedding
-from utils.db                  import insert_song
+from utils.db                  import insert_song, update_song_metadata
 
 logger = logging.getLogger(__name__)
 
 # ── Directory layout ──────────────────────────────────────────────────────────
-EMBEDDINGS_DIR     = "data/embeddings"       # 256d PCA-compressed (final)
-EMBEDDINGS_RAW_DIR = "data/embeddings_raw"   # ~997d raw fused (pilot, pre-PCA)
+EMBEDDINGS_DIR     = "data/embeddings"       # final indexed vectors (see index/build_index.py)
+EMBEDDINGS_RAW_DIR = "data/embeddings_raw"   # raw fused vectors, pre-PCA/finalize
 FEATURES_DIR       = "data/features"
 NLP_DIR            = "data/nlp"
+LYRICS_DIR         = "data/lyrics"           # raw lyric TEXT — added 2026-09-15, see note below
 TEMP_DIR           = "/tmp/hindi_music_temp"
 PCA_PATH           = "index/pca_model.pkl"
 
-for _d in (EMBEDDINGS_DIR, EMBEDDINGS_RAW_DIR, FEATURES_DIR, NLP_DIR, TEMP_DIR):
+for _d in (EMBEDDINGS_DIR, EMBEDDINGS_RAW_DIR, FEATURES_DIR, NLP_DIR, LYRICS_DIR, TEMP_DIR):
     os.makedirs(_d, exist_ok=True)
 
 
@@ -197,26 +208,60 @@ def process_song(
 
         raga_missing = bool(indian_feat.get("raga_missing", False))
 
-        # ── Steps 7–8: CLAP + lyrics IN PARALLEL ─────────────────────────────
-        # CLAP is compute-bound (~10s); Genius is I/O-bound (~2–4s).
-        # Running concurrently recovers the full Genius round-trip for free.
-        logger.info("[6] CLAP embedding + lyrics fetch (parallel)…")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-            clap_future   = pool.submit(get_clap_embedding, clip_path)
-            lyrics_future = pool.submit(fetch_lyrics, title, artist)
-            
-            clap_emb = clap_future.result()    # ndarray (512,)
-            
+        # ── Steps 7–8: CLAP + lyrics + metadata, ALL IN PARALLEL ─────────────
+        # CLAP is compute-bound (~10s); Genius and Wikidata are both I/O-bound
+        # (~2-5s each). Running all three concurrently means the metadata
+        # fetch (added 2026-09-15 — see pipeline/metadata_fetcher.py) costs
+        # nothing extra on the critical path for a new song, and every song
+        # ingested from here on gets composer/lyricist/genre/year for free,
+        # with no separate manual step required as the catalog scales.
+        logger.info("[6] CLAP embedding + lyrics fetch + metadata fetch (parallel)…")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+            clap_future     = pool.submit(get_clap_embedding, clip_path)
+            lyrics_future   = pool.submit(fetch_lyrics, title, artist)
+            metadata_future = pool.submit(fetch_song_metadata, title, artist)
+
+            clap_emb = clap_future.result()    # ndarray (CLAP_DIM,) == (1024,)
+
             # FIX 2: Handle the single string return safely
             raw_lyrics = lyrics_future.result()
             if not isinstance(raw_lyrics, str):
                 raw_lyrics = ""
-                
+
             lyrics = raw_lyrics
             lyrics_missing = (lyrics.strip() == "")
 
+            try:
+                song_metadata = metadata_future.result()
+            except Exception as exc:
+                logger.warning(f"   Metadata fetch failed (non-fatal): {exc}")
+                song_metadata = {"composer": None, "lyricist": None, "genre": [],
+                                  "year": None, "wikidata_id": None}
+
         if lyrics_missing:
             logger.info("   Lyrics not found — zero NLP vector, weights redistributed.")
+            mood = None
+        else:
+            # Persist raw lyric TEXT, not just its embedding. Added 2026-09-15
+            # after discovering only the embedding was ever saved — meaning
+            # there was no way to spot-check whether Genius's fuzzy search
+            # actually matched the right song, and no way to derive any new
+            # text-based signal (e.g. mood tagging, pipeline/mood_tagger.py)
+            # without re-fetching from scratch. Cheap (a few KB of text);
+            # never delete this the way audio is deliberately deleted.
+            lyrics_path = os.path.join(LYRICS_DIR, f"{song_id}.txt")
+            with open(lyrics_path, "w") as f:
+                f.write(lyrics)
+            mood = tag_mood(lyrics)
+
+        if song_metadata["wikidata_id"]:
+            logger.info(
+                f"   Metadata: composer={song_metadata['composer']!r} "
+                f"lyricist={song_metadata['lyricist']!r} genre={song_metadata['genre']} "
+                f"year={song_metadata['year']}"
+            )
+        else:
+            logger.info("   No confident Wikidata match for this song — metadata left null.")
 
         # ── Step 9: NLP embedding ─────────────────────────────────────────────
         logger.info("[7] NLP lyric embedding…")
@@ -260,15 +305,25 @@ def process_song(
             stem_separation_failed = stem_separation_failed,      # new
         )
 
+        # ALWAYS save the raw fused vector to its own dedicated path first,
+        # and never touch it again after this. Fixed 2026-09-15: this branch
+        # previously saved ONLY the final (possibly PCA-compressed) vector
+        # and never persisted the true raw one for new songs at all —
+        # meaning every song ingested through this path had no raw backup,
+        # silently defeating the Phase 0 fix (see index/build_index.py's
+        # matching read/write-path fixes) for anything ingested afterward.
+        raw_path = os.path.join(EMBEDDINGS_RAW_DIR, f"{song_id}.npy")
+        save_embedding(fused_vec, raw_path)
+
         pca = _get_pca()
         if pca is not None:
-            logger.info("[10] PCA compress → 256d…")
-            final_vec      = compress_with_pca(fused_vec, pca)
-            embedding_path = os.path.join(EMBEDDINGS_DIR, f"{song_id}.npy")
+            logger.info("[10] PCA compress → Nd…")
+            final_vec = compress_with_pca(fused_vec, pca)
         else:
-            logger.warning("[10] No PCA model — storing raw ~997d vector.")
-            final_vec      = fused_vec
-            embedding_path = os.path.join(EMBEDDINGS_RAW_DIR, f"{song_id}.npy")
+            logger.info("[10] No PCA model yet (corpus below MIN_SONGS_FOR_PCA) — "
+                        "final vector is the raw one, unchanged.")
+            final_vec = fused_vec
+        embedding_path = os.path.join(EMBEDDINGS_DIR, f"{song_id}.npy")
 
         # ── Step 13a: Save embedding ──────────────────────────────────────────
         save_embedding(final_vec, embedding_path)
@@ -299,6 +354,7 @@ def process_song(
             # Metadata
             "category":           category,
             "actual_clip_start":  actual_start,
+            "mood":               mood,
         }
         save_features(full_features, features_path)
 
@@ -316,6 +372,19 @@ def process_song(
             lyrics_missing         = int(lyrics_missing),
             raga_missing           = int(raga_missing),
             stem_separation_failed = int(stem_separation_failed),
+        )
+
+        # Composer/lyricist/genre/year — automated Wikidata fetch (see Steps
+        # 7-8 above), separate call since insert_song()'s signature predates
+        # this enrichment and update_song_metadata() only touches the fields
+        # actually passed.
+        update_song_metadata(
+            song_id,
+            composer=song_metadata["composer"],
+            lyricist=song_metadata["lyricist"],
+            genre=song_metadata["genre"],
+            release_year=song_metadata["year"],
+            wikidata_id=song_metadata["wikidata_id"],
         )
 
         logger.info(

@@ -16,5 +16,7 @@ requests
 msclap        # Microsoft's CLAP implementation — easiest to use
 torchcodec
 demucs
-pydub
 essentia
+python-dotenv       # loads GENIUS_TOKEN from .env — was installed ad-hoc, never listed here until 2026-09-15
+lyricsgenius        # Genius API client for lyric fetching — same gap
+sentence-transformers  # multilingual lyric embeddings (nlp_embedder.py) — same gap
