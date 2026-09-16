@@ -125,7 +125,7 @@ def get_clap_embedding(audio_path: str) -> np.ndarray:
     """
     model      = get_clap()
     embeddings = model.get_audio_embeddings([audio_path])
-    emb        = np.array(embeddings[0], dtype=np.float32)
+    emb        = np.array(embeddings[0].detach().cpu(), dtype=np.float32)
     return _l2(emb)
 
 
@@ -137,7 +137,7 @@ def get_clap_text_query(text: str) -> np.ndarray:
     """
     model      = get_clap()
     embeddings = model.get_text_embeddings([text])
-    emb        = np.array(embeddings[0], dtype=np.float32)
+    emb        = np.array(embeddings[0].detach().cpu(), dtype=np.float32)
     return _l2(emb)
 
 
