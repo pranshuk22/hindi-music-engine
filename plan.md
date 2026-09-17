@@ -476,16 +476,51 @@ anchor moved the wrong direction, Last.fm set not yet usable as a check).
    for this personal-learning use). **No pretrained weights exist anywhere**
    for this dataset — its own reference repo is training-code-only (4 files:
    LICENSE, README, one Colab notebook expecting a personal Google Drive
-   path, no disclosed accuracy). Built `notebooks/raga_classifier_training.ipynb`
-   to train one from scratch: log-mel-spectrogram CNN (PyTorch, not the
-   original's Keras CRNN2D+DenseNet, to match this project's stack),
-   file-level train/val/test split (never splits one recording's segments
-   across sets — the leakage the original notebook doesn't clearly guard
-   against), class-weighted loss for the 5-42-recordings-per-raga imbalance,
-   and both per-segment and per-file majority-vote held-out test accuracy
-   (majority-vote is the number that matters — it's how a whole song will
-   actually be classified later). Not yet run — next step is the owner
-   running it on Kaggle GPU.
+   path, no disclosed accuracy, and — checked directly, not assumed — its
+   own disclosed 93-100% numbers are very likely clip-leakage-inflated, since
+   its dataset was built by chopping whole recordings into many 30s/60s
+   clips with no stated file-level train/test separation).
+
+   **Attempt 1 — log-mel-spectrogram CNN** (`raga_classifier_training.ipynb`,
+   PyTorch, file-level split to avoid the leakage above). Real result: stuck
+   near chance (best majority-vote ~3-5% on 61 classes) across two full
+   rounds of regularization (SpecAugment, weight decay, dropout) — evidence
+   the model was learning performer/recording timbre fingerprint rather than
+   raga structure, not fixable by tuning a spectrogram CNN further.
+
+   **Attempt 2 — tonic-normalized pitch-contour GRU** (`raga_classifier_pitch_contour.ipynb`,
+   DeepSRGM/Madhusudhan & Chowdhary 2018 architecture: quantized cents-relative-
+   to-tonic tokens -> Embedding -> GRU -> attention pooling -> FC), specifically
+   to strip out timbre and force melodic-structure learning. Real, large
+   improvement: **41.0% per-file majority-vote test accuracy** (25/61, ~25x
+   chance) after iterating on real evidence — model capacity reduction alone
+   (768->256 hidden, RNN dropout, stronger sequence masking) roughly halved
+   the train/val overfitting gap but barely moved the accuracy ceiling
+   (~22%); doubling segments/file (10->20) then produced the real jump,
+   likely via two compounding effects: more training data, and more
+   independent per-file votes for majority-voting to average over at test
+   time. (Caveat: only 61 test files/one per class, so this number carries
+   real sampling uncertainty — likely low-30s to upper-40s% true rate — but
+   unambiguously well above chance.) Also found and fixed several real bugs
+   along the way (precompute analyzing whole 20-40min recordings when only
+   ~2min/file was ever used — a 20-25x slowdown; missing gradient clipping
+   for a 5000-step GRU; a numpy-ABI break from installing `essentia`, same
+   class of bug as the batch runner's, defended against proactively this
+   time). **Not yet tested on our own catalog** — domain shift (trained only
+   on Hindustani classical concert recordings, target is Bollywood/ghazal/
+   sufi production) is a real, still-open question regardless of this number.
+
+   **Attempt 3 — per-raga HMMs** (`raga_classifier_hmm.ipynb`, Tansen-style,
+   Pandey/Mishra/Ipe 2003: one generative HMM per raga, Bayes-rule
+   classification), reusing the same cached pitch-contour tokens, no GPU
+   needed. Running for comparison — real academic precedent for this exact
+   problem, fewer parameters than even the shrunk GRU, but 61 independent
+   models share no parameters across classes (unlike the GRU), so it isn't
+   obviously more sample-efficient in aggregate. Both notebooks now save
+   per-segment predictions (GRU: softmax probs; HMM: log-likelihoods) so a
+   late-fusion ensemble can be built once both have real results — not built
+   yet, deliberately, since tuning a blend with no real data to test against
+   would be guessing.
 5. **twelveswaras** (github.com/twelveswaras/twelveswaras) remains a
    documented but unused fallback lead — live product on HF Spaces, most
    credible/maintained of everything found, disclosed real-world accuracy,
