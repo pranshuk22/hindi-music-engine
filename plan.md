@@ -452,21 +452,45 @@ anchor moved the wrong direction, Last.fm set not yet usable as a check).
 3. **Owner: keep expanding `golden_relevance.json`** toward 15–20 anchors —
    more load-bearing than before, now that a real architectural change
    needs more than 6 anchors to fully trust.
-4. **Raga classification model research done (2026-09-17)** — beyond the
-   already-known E2ERaga, found `automatic-raga-recognition`
-   (github.com/shubhlohiya/automatic-raga-recognition, real checkpoint
-   files in-repo, DeepSRGM reimplementation, no LICENSE file, unverified
-   accuracy on that exact checkpoint) and `twelveswaras`
-   (github.com/twelveswaras/twelveswaras, live product on HF Spaces, most
-   credible/maintained, disclosed real-world accuracy, but weights are
-   CC-BY-NC-SA — blocks commercial use). Neither validated in this repo yet;
-   HuggingFace model hub has no ready-to-load raga classifier at all.
-   Pick up when time allows — same integration-test discipline as E2ERaga
-   before trusting either.
-5. **Continue Phase 6 scaling** toward the 200-song PCA-activation
+4. **Raga classification — training our own, from scratch (in progress,
+   2026-09-17).** `automatic-raga-recognition`'s downloadable checkpoint
+   (10 classes: Suraṭi, Mukhāri, Varāḷi, Ānandabhairavi, Hussēnī, Aṭāna,
+   Madhyamāvati, Dēvagāndhāri, Kāṁbhōji, Bēgaḍa) was checked in detail and
+   **rejected** — confirmed via its own model summary and `test_utils.py`
+   that all 10 are **Carnatic** ragas (CompMusic Carnatic corpus), the wrong
+   tradition for a Bollywood/ghazal/sufi catalog, and it needs a
+   tonic-identification + tonic-normalized pitch-contour pipeline built for
+   solo-voice concert recordings, not filmi production. Owner then pointed
+   at the **Thaat and Raga Forest (TRF) dataset**
+   (kaggle.com/datasets/suryamajumder/thaat-and-raga-forest-trf-dataset,
+   github.com/SuryaMajumder/Thaat_and_Raga_Identification) — checked via the
+   actual Kaggle API file listing (not just the README): **Hindustani**
+   tradition, 10 thaats / 61 ragas, ~19GB / 1103 real recordings, explicitly
+   includes movie songs per its own description, and covers ragas that
+   actually show up in Bollywood/ghazal music (Bhairavi, Yaman, Khamaj,
+   Malkauns, Desh, Bageshree, Darbari, Pahadi...). AGPL-3.0 licensed (fine
+   for this personal-learning use). **No pretrained weights exist anywhere**
+   for this dataset — its own reference repo is training-code-only (4 files:
+   LICENSE, README, one Colab notebook expecting a personal Google Drive
+   path, no disclosed accuracy). Built `notebooks/raga_classifier_training.ipynb`
+   to train one from scratch: log-mel-spectrogram CNN (PyTorch, not the
+   original's Keras CRNN2D+DenseNet, to match this project's stack),
+   file-level train/val/test split (never splits one recording's segments
+   across sets — the leakage the original notebook doesn't clearly guard
+   against), class-weighted loss for the 5-42-recordings-per-raga imbalance,
+   and both per-segment and per-file majority-vote held-out test accuracy
+   (majority-vote is the number that matters — it's how a whole song will
+   actually be classified later). Not yet run — next step is the owner
+   running it on Kaggle GPU.
+5. **twelveswaras** (github.com/twelveswaras/twelveswaras) remains a
+   documented but unused fallback lead — live product on HF Spaces, most
+   credible/maintained of everything found, disclosed real-world accuracy,
+   but weights are CC-BY-NC-SA (blocks commercial use) and it wasn't needed
+   once the TRF training path opened up.
+6. **Continue Phase 6 scaling** toward the 200-song PCA-activation
    checkpoint, then 500–1000+. `songs.csv` is at 94; owner input needed on
    next batch of source titles, or I can propose a candidate list.
-6. **Once scaled further**, re-run the golden eval at each checkpoint
+7. **Once scaled further**, re-run the golden eval at each checkpoint
    (~200/500/1000 songs) and re-sweep composer/lyricist/mood/vocal_energy/
    tempo/tonnetz — all currently inert at weight 0.0, all worth revisiting
    with real coverage.
