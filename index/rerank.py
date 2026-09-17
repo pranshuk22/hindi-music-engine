@@ -57,6 +57,7 @@ def build_context(row) -> dict:
     if nlp_path and os.path.exists(nlp_path):
         nlp_emb = np.load(nlp_path).astype(np.float32)
     return {
+        "artist":             row["artist"],     # the singer, in every row — 100% coverage, unlike composer
         "composer":           row["composer"],
         "lyricist":           row["lyricist"],   # automated Wikidata fetch, see pipeline/metadata_fetcher.py
         "tempo":              feat.get("tempo"),
@@ -68,6 +69,25 @@ def build_context(row) -> dict:
 
 
 # ─── Individual scorers ───────────────────────────────────────────────────────
+
+def _score_artist(a: dict, c: dict) -> float:
+    """
+    1.0 if same (non-null) singer, else 0.0. Unlike composer, `artist` is a
+    required songs.csv column with 100% coverage on this catalog (94/94) —
+    the coverage problem that killed composer's effect doesn't apply here.
+    Real overlap exists too: e.g. 18 Arijit Singh songs, 7 each for Nusrat
+    Fateh Ali Khan and Jagjit Singh. Added 2026-09-17 at the owner's
+    request; starts at weight 0.0 like every other new signal until swept.
+
+    Possible confound worth watching in the sweep results: a same-singer
+    match may partly already be implicit in Stage 1 (the same voice's
+    timbre naturally raises CLAP/vocal-feature cosine similarity), so any
+    measured lift here could be smaller than composer's naive 0.502 was —
+    that's not a bug, it's this signal being partly redundant with what
+    Stage 1 already sees, same reasoning documented on _score_lyric above.
+    """
+    return 1.0 if (a["artist"] and c["artist"] and a["artist"] == c["artist"]) else 0.0
+
 
 def _score_composer(a: dict, c: dict) -> float:
     """1.0 if same (non-null) composer, else 0.0."""
@@ -134,6 +154,7 @@ def _score_mood(a: dict, c: dict) -> float:
 
 
 SCORERS = {
+    "artist":       _score_artist,
     "composer":     _score_composer,
     "lyricist":     _score_lyricist,
     "vocal_energy": _score_vocal_energy,
@@ -157,6 +178,14 @@ SCORERS = {
 # (inert) until it earns a nonzero value via a real sweep on real data —
 # see experiment_log.md for the full history of what NOT to assume here.
 DEFAULT_WEIGHTS = {
+    # Swept 2026-09-17 on both golden sets (0 -> 0.05 -> 0.1 -> 0.15 -> 0.2/0.3/0.4):
+    # hand-reviewed nDCG@5 0.242->0.446, Last.fm nDCG@5 0.071->0.148 — both
+    # plateau starting at 0.15, both move the SAME direction on two
+    # independently-sourced golden sets (unlike composer, `artist` is
+    # objective catalog metadata neither set was judged on, so this isn't
+    # circular). 0.15 is both the plateau-onset and a moderate pick, no
+    # tension between those this time. See experiment_log.md.
+    "artist":       0.15,
     "composer":     0.0,
     "lyricist":     0.0,
     "vocal_energy": 0.0,

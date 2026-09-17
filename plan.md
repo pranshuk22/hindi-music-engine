@@ -441,6 +441,10 @@ documented and confirmed to misjudge genre) took hand-reviewed nDCG@5 from
 log entry for the full picture, including real caveats (small N, one
 anchor moved the wrong direction, Last.fm set not yet usable as a check).
 
+0. **`artist` (singer) rerank signal added and validated (2026-09-17)** —
+   100% catalog coverage, unlike composer. Confirmed on both golden sets
+   independently: hand-reviewed nDCG@5 0.242→0.446, Last.fm 0.071→0.148.
+   Default weight 0.15. Current honest baseline going forward.
 1. **Validate the CLAP-weight win against a rebuilt Last.fm golden set**
    (see #2) before treating 0.242 as fully trustworthy — right now the only
    check is the same 6 hand-reviewed anchors that also informed the
