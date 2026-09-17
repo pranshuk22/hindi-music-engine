@@ -303,6 +303,7 @@ def process_song(
             tonnetz_mean           = tonnetz,                     # 6d — new
             lyrics_missing         = lyrics_missing,
             stem_separation_failed = stem_separation_failed,      # new
+            category               = category,
         )
 
         # ALWAYS save the raw fused vector to its own dedicated path first,

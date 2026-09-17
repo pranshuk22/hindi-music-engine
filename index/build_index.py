@@ -213,6 +213,7 @@ def rebuild_embeddings_from_features(songs: list) -> list:
             hnr_mean           = hnr_mean,
             lyrics_missing     = lyrics_missing,
             clap_missing       = clap_missing,
+            category           = feat.get("category"),
         )
 
         # Always write to the dedicated raw path, never back to whatever

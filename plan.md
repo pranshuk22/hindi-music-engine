@@ -318,14 +318,14 @@ validation above is noisy at this N. Scale before further tuning.
       see the "expensive vs. cheap" split discussed earlier in this
       conversation about not re-running Demucs/CLAP for every ablation.
 
+- [x] **Kaggle driver notebook built and run (2026-09-17)** —
+      `notebooks/kaggle_batch_runner.ipynb`: clone (into `/kaggle/tmp`, not
+      `/kaggle/working` — see secrets-leak fix in the experiment log) →
+      `pip install -r requirements.txt` (with a numpy-ABI self-consistency
+      fix) → run a CSV chunk → rebuild index → stage outputs for a Kaggle
+      Dataset version. First real run: 50→94 songs, 94/94 succeeded.
 - [ ] Target 500–1000+ songs, using `run_pipeline.py`'s existing
       resumable/chunked design (already solid — no changes needed there).
-- [ ] Kaggle workflow: clone the repo (`!git clone`) into a notebook rather
-      than building a code→notebook converter — avoids fighting relative
-      imports/`__main__` guards for no real benefit. One hand-written driver
-      notebook (`notebooks/kaggle_batch_runner.ipynb`, checked into the repo)
-      does clone → `pip install -r requirements.txt` → run a CSV chunk →
-      commit outputs as a new Kaggle Dataset version.
 - [ ] Re-run the golden eval (expanded set, Phase 1) at each scale checkpoint
       (~200, ~500, ~1000 songs) to confirm PCA turning on at 200 doesn't
       regress quality — see Testing & Benchmarking Plan.
@@ -428,28 +428,45 @@ nDCG values actually correspond to "these recommendations are good" by ear.
 
 ## Immediate next actions (updated 2026-09-17 — see experiment_log.md for how we got here)
 
-Phases 0/1(partial)/2/3/4 are done or tried-and-honestly-inconclusive. The
-repeated finding across composer, mood, vocal_energy, tempo, tonnetz, and
-lyric is the same: **not enough songs and not enough golden-set anchors for
-any signal to prove itself, not that the signals are wrong.** That points
-at one clear next lever over any other:
+Phases 0/1(partial)/2/3/4/5 are done or tried-and-honestly-inconclusive.
+**Phase 6 is underway**: first real Kaggle GPU batch run completed, scaling
+50→94 songs (3 real bugs found and fixed, invisible on local CPU-only dev
+— see the Phase 6 experiment log entry). Separately, the owner pushed back
+on the flat 0.156 nDCG@5 baseline and asked whether the *architecture*, not
+just corpus size, was the bottleneck — **first real, non-circular
+architectural win of the project**: category-conditional CLAP fusion
+weight (lower CLAP's influence specifically for ghazal/sufi, where it's
+documented and confirmed to misjudge genre) took hand-reviewed nDCG@5 from
+0.156 → **0.242**. See the 2026-09-17 "Category-conditional CLAP" experiment
+log entry for the full picture, including real caveats (small N, one
+anchor moved the wrong direction, Last.fm set not yet usable as a check).
 
-1. **Owner: keep expanding `golden_relevance.json`** toward 15–20 anchors
-   (in progress, no blocker on our end).
-2. **Phase 6 — scale the corpus (Kaggle).** This is now the highest-value
-   next step: it directly addresses the coverage bottleneck behind every
-   inconclusive Phase 2/3/4 result, not just the eval-set-size problem.
-   Concretely:
-   - Build the Kaggle driver notebook (`notebooks/kaggle_batch_runner.ipynb`)
-     — clone repo, install deps, run `run_pipeline.py` on a CSV chunk,
-     commit outputs as a Kaggle Dataset version. Can be done now, doesn't
-     need Kaggle access from this session.
-   - Needs an expanded `songs.csv` (500–1000+ songs) — owner input on
-     source/scope, or I can propose a candidate list to review.
-   - Actually running it needs the owner's Kaggle account/GPU quota.
-3. **Once scaled**, re-run the golden eval at each checkpoint (~200/500/1000
-   songs) and re-sweep composer/lyricist/mood/vocal_energy/tempo/tonnetz —
-   all currently inert at weight 0.0, all worth revisiting with real coverage.
-4. Lower priority, can happen anytime, doesn't depend on scale: Phase 5's
-   `raga_probability` fix via the Wikipedia soundtrack-page raga lead found
-   2026-09-15 (see Phase 3) — cut the current fake heuristic either way.
+1. **Validate the CLAP-weight win against a rebuilt Last.fm golden set**
+   (see #2) before treating 0.242 as fully trustworthy — right now the only
+   check is the same 6 hand-reviewed anchors that also informed the
+   category hypothesis.
+2. **Regenerate `golden_relevance_lastfm.json` against the 94-song catalog**
+   (`scripts/expand_golden_from_lastfm.py`) — the current file's judged
+   pools are still frozen at 50-song-catalog Last.fm lookups, so its numbers
+   aren't comparable post-scale-up, and can't yet confirm or refute #1.
+3. **Owner: keep expanding `golden_relevance.json`** toward 15–20 anchors —
+   more load-bearing than before, now that a real architectural change
+   needs more than 6 anchors to fully trust.
+4. **Raga classification model research done (2026-09-17)** — beyond the
+   already-known E2ERaga, found `automatic-raga-recognition`
+   (github.com/shubhlohiya/automatic-raga-recognition, real checkpoint
+   files in-repo, DeepSRGM reimplementation, no LICENSE file, unverified
+   accuracy on that exact checkpoint) and `twelveswaras`
+   (github.com/twelveswaras/twelveswaras, live product on HF Spaces, most
+   credible/maintained, disclosed real-world accuracy, but weights are
+   CC-BY-NC-SA — blocks commercial use). Neither validated in this repo yet;
+   HuggingFace model hub has no ready-to-load raga classifier at all.
+   Pick up when time allows — same integration-test discipline as E2ERaga
+   before trusting either.
+5. **Continue Phase 6 scaling** toward the 200-song PCA-activation
+   checkpoint, then 500–1000+. `songs.csv` is at 94; owner input needed on
+   next batch of source titles, or I can propose a candidate list.
+6. **Once scaled further**, re-run the golden eval at each checkpoint
+   (~200/500/1000 songs) and re-sweep composer/lyricist/mood/vocal_energy/
+   tempo/tonnetz — all currently inert at weight 0.0, all worth revisiting
+   with real coverage.

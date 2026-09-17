@@ -149,25 +149,45 @@ _BASE = dict(clap=0.30, nlp=0.15, vocal=0.22, melodic=0.20, rhythmic=0.13)
 # Verify they sum to 1.0 at import time
 assert abs(sum(_BASE.values()) - 1.0) < 1e-6, "Base weights must sum to 1.0"
 
+# EXPERIMENTAL (2026-09-17, untested until the ablation below runs) — CLAP is
+# documented (AGENTS.md) and empirically confirmed (experiment_log.md,
+# 2026-09-15 CLAP-recovery entry: a ghazal anchor collapsed to 0.000 once
+# real CLAP was added) to misjudge genres far from its Western/AudioSet-style
+# training distribution. Hypothesis: a global fixed 0.30 CLAP weight is
+# exactly the "fixed-weight fusion is blunt" problem — lower it specifically
+# for the genres CLAP is known to get wrong, leave it (or raise it) for
+# genres closer to CLAP's training distribution. Category names must match
+# the `category` column in songs.csv. Ablate with/without before trusting.
+_CATEGORY_CLAP_WEIGHT = {
+    "ghazal":       0.15,
+    "sufi":         0.20,
+    "sad_romantic": 0.30,
+    "party":        0.32,
+    "upbeat":       0.32,
+}
 
-def _redistribute(w: dict, zero_key: str) -> None:
+
+def _set_weight(w: dict, key: str, new_value: float) -> None:
     """
-    Zero out w[zero_key] in place and redistribute its weight proportionally
-    across every other group, preserving their relative ratios.
+    Set w[key] to new_value in place, redistributing the difference
+    proportionally across every other group so the total stays 1.0.
 
-    Proportional (not fixed-constant) redistribution is what keeps this
-    correct under composition: applying it for clap_missing and then again
-    for lyrics_missing always sums to 1.0 regardless of which groups are
-    already missing, because each step redistributes whatever weight
-    currently exists rather than a value computed for one specific base case.
-    An earlier version used fixed constants tuned for the "only NLP missing"
+    Generalizes what used to be redistribute-to-zero-only logic: freeing
+    weight (new_value < current) or borrowing weight (new_value > current)
+    both fall out of the same proportional math. Proportional (not
+    fixed-constant) redistribution is what keeps this correct under
+    composition — applying it for clap_missing and then again for
+    lyrics_missing always sums to 1.0 regardless of which groups are already
+    adjusted, because each step redistributes whatever weight currently
+    exists rather than a value computed for one specific base case. An
+    earlier version used fixed constants tuned for the "only NLP missing"
     case and silently under-redistributed by ~0.064 whenever CLAP was also
     missing (caught via the sanity-check warning below, which corrected the
     output but signalled the math itself was wrong).
     """
-    freed = w[zero_key]
-    w[zero_key] = 0.0
-    targets = [k for k in w if k != zero_key]
+    freed = w[key] - new_value
+    w[key] = new_value
+    targets = [k for k in w if k != key]
     total = sum(w[k] for k in targets)
     if total <= 0:
         return
@@ -175,16 +195,29 @@ def _redistribute(w: dict, zero_key: str) -> None:
         w[k] += freed * (w[k] / total)
 
 
+def _redistribute(w: dict, zero_key: str) -> None:
+    """Zero out w[zero_key] in place; see _set_weight for the general case."""
+    _set_weight(w, zero_key, 0.0)
+
+
 def _compute_weights(
     lyrics_missing: bool,
     stem_separation_failed: bool,
     clap_missing: bool = False,
+    category: str = None,
 ) -> dict:
     """
     Return per-group scalar weights after applying flag-based redistributions.
 
     Redistribution rules (applied in order, each proportional — see
-    _redistribute — so composition of any subset of flags still sums to 1.0):
+    _set_weight — so composition of any subset of adjustments still sums to
+    1.0):
+
+    -1. category in _CATEGORY_CLAP_WEIGHT (EXPERIMENTAL, see that dict's
+        docstring) — set CLAP's weight to the category-specific value before
+        anything else, so a missing-CLAP or stem-failure adjustment below
+        redistributes from the already-category-adjusted starting point,
+        not the flat 0.30 default.
 
     0. clap_missing=True
        CLAP embedding could not be recovered (e.g. rebuilding from a features
@@ -205,6 +238,10 @@ def _compute_weights(
        already made by steps 0–1, unlike a fixed set of added constants).
     """
     w = dict(_BASE)   # copy
+
+    # ── Step -1: category-conditional CLAP weight (experimental) ─────────────
+    if category in _CATEGORY_CLAP_WEIGHT:
+        _set_weight(w, "clap", _CATEGORY_CLAP_WEIGHT[category])
 
     # ── Step 0: missing CLAP ──────────────────────────────────────────────────
     if clap_missing:
@@ -248,6 +285,7 @@ def build_fused_vector(
     lyrics_missing:        bool = False,
     stem_separation_failed: bool = False,
     clap_missing:          bool = False,
+    category:              str = None,        # EXPERIMENTAL — see _CATEGORY_CLAP_WEIGHT
     raga_probability:      np.ndarray = None, # (30,) — DEPRECATED 2026-09-17, see note below; accepted but ignored, never required
 ) -> np.ndarray:
     """
@@ -301,7 +339,7 @@ def build_fused_vector(
     Returns:
         np.ndarray, shape (~1863,), dtype float32, L2-normalised
     """
-    w = _compute_weights(lyrics_missing, stem_separation_failed, clap_missing)
+    w = _compute_weights(lyrics_missing, stem_separation_failed, clap_missing, category)
 
     # ── Handle optional tonnetz ───────────────────────────────────────────────
     _tonnetz = (
