@@ -54,7 +54,8 @@ def _normalize(s: str) -> str:
     return "".join(c.lower() for c in s if c.isalnum() or c.isspace()).strip()
 
 
-def _fuzzy_match_catalog(title: str, artist: str, catalog: list[dict], threshold: float = 0.72):
+def _fuzzy_match_catalog(title: str, artist: str, catalog: list[dict], threshold: float = 0.72,
+                          min_artist_sim: float = 0.55):
     """
     Find the best-matching song in our own catalog for a Last.fm result.
     Returns the matching song_id, or None if nothing clears the threshold.
@@ -65,6 +66,24 @@ def _fuzzy_match_catalog(title: str, artist: str, catalog: list[dict], threshold
     real Last.fm output yet (no API key available while writing this) —
     inspect false-positive/negative matches on the first real run and
     adjust; see the module docstring.
+
+    min_artist_sim (added 2026-09-18): a hard floor on artist similarity,
+    checked BEFORE the combined title+artist score — found necessary after
+    a full real run showed 17/118 (14%) judgments had catalog-artist vs
+    Last.fm-artist similarity under 0.5, because with title weighted 0.7,
+    an exact title match alone (1.0 * 0.7 = 0.70) gets almost all the way
+    to the 0.72 threshold regardless of whether the artist matches at all.
+    Two real failure modes this let through: (1) Last.fm crediting a song's
+    COMPOSER (e.g. "Pritam") where our catalog credits the actual singer —
+    usually harmless (right song, e.g. "Kabira"/"Raabta"), but (2) genuinely
+    DIFFERENT songs that happen to share a title across different films/eras
+    — e.g. a 1999 Alka Yagnik "Dilbar" fuzzy-matched to catalog's unrelated
+    2018 Neha Kakkar "Dilbar", corrupting that judgment with the wrong song
+    entirely. The real similarity distribution across all 118 judgments in
+    that run was cleanly bimodal — 17 cases under 0.5, every legitimate
+    match at 0.68 or 1.0 (the 0.68 cases being genuine multi-artist credits,
+    e.g. "Sukhwinder Singh" vs "Sukhwinder Singh & Sapna Awasthi") — so 0.55
+    sits in an empty gap with real margin on both sides, not a guessed value.
     """
     target_title = _normalize(title)
     target_artist = _normalize(artist)
@@ -73,8 +92,10 @@ def _fuzzy_match_catalog(title: str, artist: str, catalog: list[dict], threshold
     for row in catalog:
         cat_title = _normalize(row["title"])
         cat_artist = _normalize(row["artist"])
-        title_sim = difflib.SequenceMatcher(None, target_title, cat_title).ratio()
         artist_sim = difflib.SequenceMatcher(None, target_artist, cat_artist).ratio()
+        if artist_sim < min_artist_sim:
+            continue  # reject regardless of title match — see min_artist_sim note above
+        title_sim = difflib.SequenceMatcher(None, target_title, cat_title).ratio()
         # Title match matters more than artist (Last.fm sometimes credits
         # featured/remix artists differently than our single-artist field).
         combined = 0.7 * title_sim + 0.3 * artist_sim

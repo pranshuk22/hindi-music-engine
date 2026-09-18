@@ -27,13 +27,6 @@
           "lastfm_artist": "Ghulam Ali"
         },
         {
-          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
-          "grade": 1,
-          "lastfm_match": 0.322,
-          "lastfm_title": "Phir Le Aya Dil",
-          "lastfm_artist": "Pritam"
-        },
-        {
           "song_id": "ranjish_hi_sahi_mehdi_hassan",
           "grade": 1,
           "lastfm_match": 0.311,
@@ -59,13 +52,6 @@
           "lastfm_match": 0.579,
           "lastfm_title": "Chupke Chupke Raat Din",
           "lastfm_artist": "Ghulam Ali"
-        },
-        {
-          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
-          "grade": 2,
-          "lastfm_match": 0.462,
-          "lastfm_title": "Phir Le Aya Dil",
-          "lastfm_artist": "Pritam"
         },
         {
           "song_id": "ranjish_hi_sahi_mehdi_hassan",
@@ -138,19 +124,6 @@
       ]
     },
     {
-      "anchor_id": "woh_kagaz_ki_kashti_jagjit_singh",
-      "note": "Auto-generated from Last.fm similar-tracks for Woh Kagaz Ki Kashti — Jagjit Singh",
-      "judgments": [
-        {
-          "song_id": "ranjish_hi_sahi_mehdi_hassan",
-          "grade": 2,
-          "lastfm_match": 0.999,
-          "lastfm_title": "Ranjish Hi Sahi",
-          "lastfm_artist": "Asha Bhosle"
-        }
-      ]
-    },
-    {
       "anchor_id": "hangama_hai_kyon_barpa_ghulam_ali",
       "note": "Auto-generated from Last.fm similar-tracks for Hangama Hai Kyon Barpa — Ghulam Ali",
       "judgments": [
@@ -215,32 +188,11 @@
       "note": "Auto-generated from Last.fm similar-tracks for Agar Tum Saath Ho — Alka Yagnik",
       "judgments": [
         {
-          "song_id": "kabira_tochi_raina",
-          "grade": 2,
-          "lastfm_match": 1.0,
-          "lastfm_title": "Kabira",
-          "lastfm_artist": "Pritam"
-        },
-        {
-          "song_id": "raabta_arijit_singh",
-          "grade": 2,
-          "lastfm_match": 0.895,
-          "lastfm_title": "Raabta",
-          "lastfm_artist": "Pritam"
-        },
-        {
           "song_id": "iktara_amit_trivedi",
           "grade": 2,
           "lastfm_match": 0.734,
           "lastfm_title": "Iktara",
           "lastfm_artist": "Amit Trivedi"
-        },
-        {
-          "song_id": "soch_na_sake_arijit_singh",
-          "grade": 2,
-          "lastfm_match": 0.652,
-          "lastfm_title": "Soch Na Sake",
-          "lastfm_artist": "Amaal Mallik"
         },
         {
           "song_id": "matargashti_mohit_chauhan",
@@ -296,13 +248,6 @@
       "note": "Auto-generated from Last.fm similar-tracks for Tune Jo Na Kaha — Mohit Chauhan",
       "judgments": [
         {
-          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
-          "grade": 2,
-          "lastfm_match": 0.791,
-          "lastfm_title": "Phir Le Aya Dil",
-          "lastfm_artist": "Arijit Singh"
-        },
-        {
           "song_id": "chaiyya_chaiyya_sukhwinder_singh",
           "grade": 1,
           "lastfm_match": 0.365,
@@ -352,19 +297,6 @@
       ]
     },
     {
-      "anchor_id": "bom_diggy_diggy_zack_knight",
-      "note": "Auto-generated from Last.fm similar-tracks for Bom Diggy Diggy — Zack Knight",
-      "judgments": [
-        {
-          "song_id": "it_s_the_time_to_disco_shaan",
-          "grade": 2,
-          "lastfm_match": 0.554,
-          "lastfm_title": "It's the Time to Disco",
-          "lastfm_artist": "Shankar-Ehsaan-Loy"
-        }
-      ]
-    },
-    {
       "anchor_id": "badtameez_dil_benny_dayal",
       "note": "Auto-generated from Last.fm similar-tracks for Badtameez Dil — Benny Dayal",
       "judgments": [
@@ -409,13 +341,6 @@
           "lastfm_artist": "Javed Ali"
         },
         {
-          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
-          "grade": 2,
-          "lastfm_match": 0.549,
-          "lastfm_title": "Phir Le Aya Dil",
-          "lastfm_artist": "Pritam"
-        },
-        {
           "song_id": "iktara_amit_trivedi",
           "grade": 2,
           "lastfm_match": 0.497,
@@ -455,13 +380,6 @@
           "lastfm_match": 1.0,
           "lastfm_title": "Khwaja Mere Khwaja",
           "lastfm_artist": "A.R. Rahman"
-        },
-        {
-          "song_id": "phir_le_aya_dil_rekha_bhardwaj",
-          "grade": 2,
-          "lastfm_match": 0.833,
-          "lastfm_title": "Phir Le Aya Dil",
-          "lastfm_artist": "Pritam"
         },
         {
           "song_id": "iktara_amit_trivedi",
@@ -510,19 +428,6 @@
           "lastfm_match": 0.287,
           "lastfm_title": "Iktara",
           "lastfm_artist": "Amit Trivedi"
-        }
-      ]
-    },
-    {
-      "anchor_id": "bhar_do_jholi_meri_adnan_sami",
-      "note": "Auto-generated from Last.fm similar-tracks for Bhar Do Jholi Meri — Adnan Sami",
-      "judgments": [
-        {
-          "song_id": "dilbar_neha_kakkar",
-          "grade": 2,
-          "lastfm_match": 0.83,
-          "lastfm_title": "Dilbar",
-          "lastfm_artist": "Alka Yagnik"
         }
       ]
     },
@@ -640,13 +545,6 @@
           "lastfm_artist": "Alka Yagnik"
         },
         {
-          "song_id": "kabira_tochi_raina",
-          "grade": 2,
-          "lastfm_match": 0.559,
-          "lastfm_title": "Kabira",
-          "lastfm_artist": "Rekha Bhardwaj"
-        },
-        {
           "song_id": "maula_mere_maula_roop_kumar_rathod",
           "grade": 2,
           "lastfm_match": 0.525,
@@ -685,13 +583,6 @@
           "lastfm_match": 1.0,
           "lastfm_title": "Mast Qalander",
           "lastfm_artist": "Nusrat Fateh Ali Khan"
-        },
-        {
-          "song_id": "chap_tilak_abida_parveen",
-          "grade": 1,
-          "lastfm_match": 0.127,
-          "lastfm_title": "Chhap Tilak",
-          "lastfm_artist": "Kailash Kher"
         }
       ]
     },
@@ -725,20 +616,6 @@
       "anchor_id": "iktara_amit_trivedi",
       "note": "Auto-generated from Last.fm similar-tracks for Iktara — Amit Trivedi",
       "judgments": [
-        {
-          "song_id": "kabira_tochi_raina",
-          "grade": 2,
-          "lastfm_match": 0.981,
-          "lastfm_title": "Kabira",
-          "lastfm_artist": "Pritam"
-        },
-        {
-          "song_id": "raabta_arijit_singh",
-          "grade": 2,
-          "lastfm_match": 0.87,
-          "lastfm_title": "Raabta",
-          "lastfm_artist": "Pritam"
-        },
         {
           "song_id": "matargashti_mohit_chauhan",
           "grade": 2,
@@ -786,13 +663,6 @@
       "anchor_id": "humdard_arijit_singh",
       "note": "Auto-generated from Last.fm similar-tracks for Humdard — Arijit Singh",
       "judgments": [
-        {
-          "song_id": "raabta_arijit_singh",
-          "grade": 2,
-          "lastfm_match": 0.874,
-          "lastfm_title": "Raabta",
-          "lastfm_artist": "Pritam"
-        },
         {
           "song_id": "agar_tum_saath_ho_alka_yagnik",
           "grade": 2,
@@ -887,13 +757,6 @@
           "lastfm_match": 0.81,
           "lastfm_title": "Kar Gayi Chull",
           "lastfm_artist": "Badshah"
-        },
-        {
-          "song_id": "balam_pichkari_vishal_dadlani",
-          "grade": 2,
-          "lastfm_match": 0.76,
-          "lastfm_title": "Balam Pichkari",
-          "lastfm_artist": "Pritam"
         },
         {
           "song_id": "matargashti_mohit_chauhan",
